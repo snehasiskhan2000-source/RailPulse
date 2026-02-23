@@ -1,45 +1,53 @@
 :root {
-    --wimt-blue: #2563eb;
-    --wimt-green: #15803d;
-    --wimt-bg: #0f172a;
+    --bg-dark: #0f172a;
+    --card-dark: #1e293b;
+    --accent-blue: #3b82f6;
+    --accent-green: #16a34a;
 }
 
-body { background: var(--wimt-bg); font-family: 'Segoe UI', sans-serif; }
+body { background: var(--bg-dark); font-family: 'Inter', sans-serif; overflow-x: hidden; }
 
-/* The vibrant blue track line from your screenshot */
+/* Premium Card Glassmorphism */
+.glass-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+}
+
+/* Suggestion Dropdown */
+#suggestions {
+    position: absolute;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 100;
+    background: #1e293b;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* Vertical Train Track */
 .track-line {
     position: absolute;
     left: 28px;
     top: 0;
     bottom: 0;
     width: 4px;
-    background: #1e3a8a;
+    background: #334155;
     z-index: 1;
 }
 
-.track-progress {
+.track-active {
     position: absolute;
-    left: 0;
+    left: 28px;
     top: 0;
-    width: 100%;
-    background: var(--wimt-blue);
+    width: 4px;
+    background: var(--accent-blue);
     z-index: 2;
+    transition: height 1s ease-in-out;
 }
 
-/* Station node styling */
-.node {
-    position: absolute;
-    left: 21px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 3px solid var(--wimt-bg);
-    z-index: 10;
-    transition: all 0.5s ease;
-}
-
-/* Pulsing train icon */
-.train-head {
+.train-pulsar {
     position: absolute;
     left: 18px;
     width: 24px;
@@ -49,12 +57,12 @@ body { background: var(--wimt-bg); font-family: 'Segoe UI', sans-serif; }
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 30;
-    box-shadow: 0 0 15px var(--wimt-blue);
+    z-index: 10;
+    box-shadow: 0 0 20px var(--accent-blue);
+    animation: bounce 2s infinite;
 }
 
-.day-divider {
-    background: #1e293b;
-    border-top: 1px dashed #334155;
-    border-bottom: 1px dashed #334155;
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
 }
