@@ -7,35 +7,37 @@ const app = express();
 app.use(cors());
 app.use(express.static('public'));
 
-// Heartbeat for Uptime Robot
-app.get('/healthz', (req, res) => res.status(200).send('RailPulse Active'));
-
-app.get('/api/status', async (req, res) => {
-    const { trainNo, date } = req.query;
-    
-    const options = {
-        method: 'GET',
-        url: 'https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status',
-        params: {
-            train_number: trainNo,
-            departure_date: date, // YYYYMMDD
-            isH5: 'true',
-            client: 'web',
-            deviceIdentifier: 'Mozilla/5.0'
-        },
-        headers: {
-            'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-            'x-rapidapi-host': 'indian-railway-irctc.p.rapidapi.com'
-        }
-    };
-
-    try {
-        const response = await axios.request(options);
-        res.json(response.data);
-    } catch (error) {
-        res.status(error.response?.status || 500).json(error.response?.data || { message: "API Error" });
+const RAPID_CONFIG = {
+    headers: {
+        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+        'x-rapidapi-host': 'indian-railway-irctc.p.rapidapi.com'
     }
+};
+
+// 1. Station Suggestion
+app.get('/api/search-station', async (req, res) => {
+    try {
+        const response = await axios.get(`https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/station/search?query=${req.query.q}`, RAPID_CONFIG);
+        res.json(response.data);
+    } catch (e) { res.status(500).json({ error: true }); }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('RailPulse Engine Running'));
+// 2. Find Trains between Stations
+app.get('/api/find-trains', async (req, res) => {
+    try {
+        const { from, to } = req.query;
+        const response = await axios.get(`https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/trainsBetweenStations?fromStationCode=${from}&toStationCode=${to}`, RAPID_CONFIG);
+        res.json(response.data);
+    } catch (e) { res.status(500).json({ error: true }); }
+});
+
+// 3. Live Status
+app.get('/api/status', async (req, res) => {
+    try {
+        const { trainNo, date } = req.query;
+        const response = await axios.get(`https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status?train_number=${trainNo}&departure_date=${date}&isH5=true&client=web`, RAPID_CONFIG);
+        res.json(response.data);
+    } catch (e) { res.status(500).json({ error: true }); }
+});
+
+app.listen(3000, () => console.log('RailPulse Engine Online'));
