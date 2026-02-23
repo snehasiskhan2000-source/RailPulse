@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailPulse | Live Train Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+</head>
+<body class="text-slate-100">
+
+    <div class="max-w-md mx-auto min-h-screen p-4">
+        <header class="flex items-center justify-between py-6 animate__animated animate__fadeIn">
+            <h1 class="text-3xl font-black tracking-tighter text-blue-500">Rail<span class="text-white">Pulse</span></h1>
+            <div class="bg-blue-500/10 text-blue-400 text-xs px-3 py-1 rounded-full border border-blue-500/20">LIVE</div>
+        </header>
+
+        <div class="rail-card p-6 rounded-3xl shadow-2xl mb-8 animate__animated animate__zoomIn">
+            <p class="text-slate-400 text-sm mb-2 font-medium uppercase tracking-widest">Identify Train</p>
+            <div class="flex gap-3">
+                <input id="trainNo" type="number" placeholder="Enter 5-digit number" 
+                    class="w-full bg-slate-800/50 rounded-2xl p-4 border border-slate-700 focus:border-blue-500 outline-none transition-all">
+                <button onclick="trackRailPulse()" class="bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl transition-all shadow-lg shadow-blue-500/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="displayArea" class="hidden relative ml-2">
+            <div class="track-line"></div>
+            <div id="stationList" class="space-y-8 pb-20"></div>
+        </div>
+    </div>
+
+    <script>
+        async function trackRailPulse() {
+            const trainNo = document.getElementById('trainNo').value;
+            const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const list = document.getElementById('stationList');
+            
+            document.getElementById('displayArea').classList.remove('hidden');
+            list.innerHTML = `<div class="p-10 text-center animate-pulse">Establishing Pulse Connection...</div>`;
+
+            try {
+                const response = await fetch(`/api/status?trainNo=${trainNo}&date=${date}`);
+                const result = await response.json();
+                renderPulseRoute(result.data.stations);
+            } catch (e) {
+                list.innerHTML = `<div class="text-red-400 text-center p-10">Invalid Train Number.</div>`;
+            }
+        }
+
+        function renderPulseRoute(stations) {
+            const list = document.getElementById('stationList');
+            list.innerHTML = "";
+
+            stations.forEach((s, i) => {
+                const isLate = s.delay_minutes > 0;
+                const arrived = s.has_arrived;
+                
+                list.innerHTML += `
+                    <div class="relative pl-12 animate__animated animate__fadeInUp" style="animation-delay: ${i * 0.05}s">
+                        <div class="absolute left-[14px] top-2 z-10">
+                            ${arrived ? '<div class="pulse-dot"></div>' : '<div class="w-3 h-3 bg-slate-700 rounded-full border border-slate-600"></div>'}
+                        </div>
+                        
+                        <div class="rail-card p-4 rounded-2xl">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-lg">${s.station_name}</span>
+                                <span class="text-xs font-bold ${isLate ? 'text-red-400' : 'text-emerald-400'}">
+                                    ${isLate ? s.delay_minutes + 'm LATE' : 'ON TIME'}
+                                </span>
+                            </div>
+                            <div class="flex gap-4 text-xs text-slate-400">
+                                <span>Platform: ${s.platform_number || 'NA'}</span>
+                                <span>Arr: ${s.scheduled_arrival}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
