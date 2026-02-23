@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.static('public'));
 
-// Uptime Robot Heartbeat
+// UptimeRobot Health Check
 app.get('/healthz', (req, res) => res.status(200).send('RailPulse Active'));
 
 app.get('/api/status', async (req, res) => {
@@ -18,7 +18,7 @@ app.get('/api/status', async (req, res) => {
         url: 'https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status',
         params: {
             train_number: trainNo,
-            departure_date: date,
+            departure_date: date, // Must be YYYYMMDD
             isH5: 'true',
             client: 'web'
         },
@@ -30,11 +30,13 @@ app.get('/api/status', async (req, res) => {
 
     try {
         const response = await axios.request(options);
+        // We send the whole response to debug on frontend
         res.json(response.data);
     } catch (error) {
-        res.status(500).json({ error: 'RailPulse: API Connection Failed' });
+        console.error("API Error:", error.response ? error.response.data : error.message);
+        res.status(500).json({ error: 'API Connection Failed' });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('RailPulse Server Running'));
+app.listen(PORT, () => console.log(`RailPulse running on port ${PORT}`));
