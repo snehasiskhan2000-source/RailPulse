@@ -1,48 +1,60 @@
 :root {
-    --primary: #3b82f6;
-    --bg-dark: #070b14;
-    --card-bg: #161e2e;
-    --accent: #10b981;
+    --wimt-blue: #2563eb;
+    --wimt-green: #15803d;
+    --wimt-bg: #0f172a;
 }
 
-body {
-    background-color: var(--bg-dark);
-    font-family: 'Segoe UI', Roboto, sans-serif;
-}
+body { background: var(--wimt-bg); font-family: 'Segoe UI', sans-serif; }
 
-.rail-card {
-    background: var(--card-bg);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
+/* The vibrant blue track line from your screenshot */
 .track-line {
     position: absolute;
-    left: 20px;
+    left: 28px;
     top: 0;
     bottom: 0;
-    width: 2px;
-    background: #2d3748;
+    width: 4px;
+    background: #1e3a8a;
+    z-index: 1;
 }
 
-.station-node {
+.track-progress {
     position: absolute;
-    left: 13px;
-    top: 6px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 3px solid var(--bg-dark);
-    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: var(--wimt-blue);
+    z-index: 2;
 }
 
-.node-passed { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-.node-upcoming { background: #4a5568; }
+/* Station node styling */
+.node {
+    position: absolute;
+    left: 21px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid var(--wimt-bg);
+    z-index: 10;
+    transition: all 0.5s ease;
+}
 
-.status-tag {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
+/* Pulsing train icon */
+.train-head {
+    position: absolute;
+    left: 18px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    box-shadow: 0 0 15px var(--wimt-blue);
+}
+
+.day-divider {
+    background: #1e293b;
+    border-top: 1px dashed #334155;
+    border-bottom: 1px dashed #334155;
 }
