@@ -20,7 +20,8 @@ app.get('/api/status', async (req, res) => {
             train_number: trainNo,
             departure_date: date, // YYYYMMDD
             isH5: 'true',
-            client: 'web'
+            client: 'web',
+            deviceIdentifier: 'Mozilla/5.0'
         },
         headers: {
             'x-rapidapi-key': process.env.RAPIDAPI_KEY,
@@ -32,12 +33,9 @@ app.get('/api/status', async (req, res) => {
         const response = await axios.request(options);
         res.json(response.data);
     } catch (error) {
-        // Forward the exact error from RapidAPI to the frontend
-        const status = error.response ? error.response.status : 500;
-        const data = error.response ? error.response.data : { message: "Internal Error" };
-        res.status(status).json(data);
+        res.status(error.response?.status || 500).json(error.response?.data || { message: "API Error" });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('RailPulse Engine Online'));
+app.listen(PORT, () => console.log('RailPulse Engine Running'));
