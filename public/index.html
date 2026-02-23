@@ -2,164 +2,161 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RailPulse Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root { --wimt-blue: #3b82f6; --wimt-bg: #0f172a; }
+        body { background: var(--wimt-bg); font-family: 'Inter', sans-serif; color: white; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .suggestion-item:last-child { border: none; }
+        .track-line { position: absolute; left: 28px; top: 0; bottom: 0; width: 4px; background: #1e293b; z-index: 1; }
+        .track-active { position: absolute; left: 28px; top: 0; width: 4px; background: var(--wimt-blue); z-index: 2; transition: height 1s; }
+    </style>
 </head>
-<body class="text-slate-100">
+<body>
 
-    <div id="screen-home" class="p-4 max-w-md mx-auto min-h-screen">
-        <header class="py-6 flex justify-between items-center">
-            <h1 class="text-2xl font-black italic text-blue-500">RAIL<span class="text-white">PULSE</span></h1>
-        </header>
-
-        <div class="glass-card p-6 mb-4">
-            <div class="space-y-4 relative">
-                <input id="fromInput" oninput="getSuggestions(this, 'from')" placeholder="From Station" class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500">
-                <div id="from-sug" class="hidden absolute left-0 right-0 rounded-xl overflow-hidden shadow-2xl z-50"></div>
-                
-                <input id="toInput" oninput="getSuggestions(this, 'to')" placeholder="To Station" class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500">
-                <div id="to-sug" class="hidden absolute left-0 right-0 rounded-xl overflow-hidden shadow-2xl z-50"></div>
-                
-                <button onclick="findTrains()" class="w-full bg-green-600 py-4 rounded-xl font-bold text-lg hover:bg-green-500 transition-all">Find Trains</button>
+    <div id="view-home" class="p-4 max-w-md mx-auto animate__animated animate__fadeIn">
+        <header class="py-8"><h1 class="text-3xl font-black italic text-blue-500">RAIL<span class="text-white">PULSE</span></h1></header>
+        
+        <div class="glass p-6 rounded-3xl space-y-4 mb-6 relative">
+            <div class="relative">
+                <input id="fromInput" oninput="debounceSearch('from')" placeholder="From Station" class="w-full bg-slate-900/50 p-4 rounded-2xl border border-slate-700 outline-none focus:border-blue-500 font-bold">
+                <div id="from-results" class="hidden absolute top-full left-0 right-0 z-50 glass mt-2 rounded-2xl overflow-hidden shadow-2xl"></div>
             </div>
+            <div class="relative">
+                <input id="toInput" oninput="debounceSearch('to')" placeholder="To Station" class="w-full bg-slate-900/50 p-4 rounded-2xl border border-slate-700 outline-none focus:border-blue-500 font-bold">
+                <div id="to-results" class="hidden absolute top-full left-0 right-0 z-50 glass mt-2 rounded-2xl overflow-hidden shadow-2xl"></div>
+            </div>
+            <button onclick="findTrains()" class="w-full bg-green-600 py-4 rounded-2xl font-black text-lg hover:bg-green-500 active:scale-95 transition-all">Find Trains</button>
         </div>
 
-        <div class="glass-card p-4">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Search by Train</p>
-            <div class="flex gap-2">
-                <input id="directTrain" placeholder="Train No / Name" class="flex-1 bg-slate-900/50 p-3 rounded-lg border border-slate-700 outline-none">
-                <button onclick="trackDirect()" class="bg-blue-600 px-6 rounded-lg font-bold">Track</button>
-            </div>
+        <div class="glass p-4 rounded-2xl flex gap-3">
+            <input id="directTrain" placeholder="Train No / Name" class="flex-1 bg-transparent p-2 outline-none font-bold">
+            <button onclick="trackTrain(document.getElementById('directTrain').value)" class="bg-blue-600 px-6 py-2 rounded-xl font-bold">Track</button>
         </div>
     </div>
 
-    <div id="screen-list" class="hidden p-4 max-w-md mx-auto min-h-screen">
-        <button onclick="showHome()" class="mb-4 text-sm text-blue-400">← Back to Search</button>
-        <div id="train-results" class="space-y-3"></div>
+    <div id="view-list" class="hidden p-4 max-w-md mx-auto animate__animated animate__fadeIn">
+        <button onclick="changeView('home')" class="text-blue-400 font-bold mb-6 flex items-center gap-2">← BACK</button>
+        <div id="list-container" class="space-y-4"></div>
     </div>
 
-    <div id="screen-track" class="hidden max-w-md mx-auto min-h-screen">
-        <div class="sticky top-0 z-50 bg-slate-900 p-4 border-b border-slate-800 flex items-center justify-between">
-            <button onclick="showList()" class="text-xl">✕</button>
-            <h2 id="tracker-title" class="text-xs font-bold truncate px-4">Loading Pulse...</h2>
-            <div class="text-[10px] bg-slate-800 px-2 py-1 rounded">Today</div>
+    <div id="view-track" class="hidden max-w-md mx-auto animate__animated animate__fadeIn">
+        <div class="sticky top-0 z-50 glass p-4 flex justify-between items-center border-b border-white/5">
+            <button onclick="changeView('home')" class="text-xl">✕</button>
+            <div id="track-header" class="text-center font-bold text-xs truncate max-w-[200px]">Loading...</div>
+            <div class="bg-blue-600 px-2 py-1 rounded text-[10px] font-bold">LIVE</div>
         </div>
-        <div class="relative pt-6 px-4">
+        <div class="relative pt-8 px-4 min-h-screen">
             <div class="track-line"></div>
             <div id="active-track" class="track-active" style="height: 0%"></div>
-            <div id="tracker-content"></div>
+            <div id="track-container"></div>
         </div>
     </div>
 
     <script>
-        // State Management
-        let selectedFrom = "";
-        let selectedTo = "";
+        let fromCode = "", toCode = "", searchTimer;
 
-        function showHome() { document.querySelectorAll('[id^="screen-"]').forEach(s => s.classList.add('hidden')); document.getElementById('screen-home').classList.remove('hidden'); }
-        function showList() { document.querySelectorAll('[id^="screen-"]').forEach(s => s.classList.add('hidden')); document.getElementById('screen-list').classList.remove('hidden'); }
-        function showTrack() { document.querySelectorAll('[id^="screen-"]').forEach(s => s.classList.add('hidden')); document.getElementById('screen-track').classList.remove('hidden'); }
+        function changeView(v) {
+            ['home', 'list', 'track'].forEach(id => document.getElementById('view-'+id).classList.add('hidden'));
+            document.getElementById('view-'+v).classList.remove('hidden');
+        }
 
-        // Autocomplete Logic
-        async function getSuggestions(input, type) {
-            if(input.value.length < 2) return;
-            const res = await fetch(`/api/search-station?q=${input.value}`);
-            const data = await res.json();
-            const box = document.getElementById(`${type}-sug`);
+        // 1. Suggestion Logic
+        function debounceSearch(type) {
+            clearTimeout(searchTimer);
+            const q = document.getElementById(type+'Input').value;
+            if(q.length < 2) return;
+            searchTimer = setTimeout(() => fetchSuggestions(q, type), 300);
+        }
+
+        async function fetchSuggestions(q, type) {
+            const res = await fetch(`/api/search-station?q=${q}`);
+            const stations = await res.json();
+            const box = document.getElementById(type+'-results');
             box.innerHTML = "";
             box.classList.remove('hidden');
-            
-            data.body.forEach(s => {
-                const div = document.createElement('div');
-                div.className = "bg-slate-800 p-4 border-b border-slate-700 cursor-pointer hover:bg-slate-700";
-                div.innerHTML = `<span class="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-[10px] font-bold mr-3">${s.stationCode}</span> ${s.stationName}`;
-                div.onclick = () => {
-                    input.value = s.stationName;
-                    if(type === 'from') selectedFrom = s.stationCode;
-                    else selectedTo = s.stationCode;
+
+            stations.forEach(s => {
+                const item = document.createElement('div');
+                item.className = "p-4 hover:bg-blue-600 cursor-pointer border-b border-white/5 suggestion-item flex items-center justify-between";
+                item.innerHTML = `<div><p class="font-bold text-sm">${s.stationName}</p></div><span class="text-[10px] bg-white/10 px-2 py-1 rounded font-mono">${s.stationCode}</span>`;
+                item.onclick = () => {
+                    document.getElementById(type+'Input').value = s.stationName;
+                    if(type === 'from') fromCode = s.stationCode; else toCode = s.stationCode;
                     box.classList.add('hidden');
                 };
-                box.appendChild(div);
+                box.appendChild(item);
             });
         }
 
-        // Find Trains Logic
+        // 2. Train Search Logic
         async function findTrains() {
-            showList();
-            const results = document.getElementById('train-results');
-            results.innerHTML = "<p class='text-center py-10 animate-pulse'>Fetching Trains...</p>";
+            if(!fromCode || !toCode) return alert("Select stations from suggestions");
+            changeView('list');
+            const container = document.getElementById('list-container');
+            container.innerHTML = "<p class='text-center opacity-50 py-20'>Analyzing Routes...</p>";
             
-            const res = await fetch(`/api/find-trains?from=${selectedFrom}&to=${selectedTo}`);
-            const data = await res.json();
-            results.innerHTML = "";
+            const res = await fetch(`/api/find-trains?from=${fromCode}&to=${toCode}`);
+            const trains = await res.json();
+            container.innerHTML = `<h2 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">${fromCode} → ${toCode}</h2>`;
             
-            data.body.trains.forEach(t => {
-                results.innerHTML += `
-                    <div onclick="trackDirect('${t.trainNumber}')" class="glass-card p-4 cursor-pointer hover:ring-1 ring-blue-500 transition-all">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-sm"><span class="bg-blue-600 px-2 py-0.5 rounded mr-2">${t.trainNumber}</span> ${t.trainName}</h3>
-                            <span class="text-[10px] text-slate-500">${t.duration}</span>
-                        </div>
-                        <div class="flex justify-between text-xs font-bold">
-                            <span>${t.departureTime} → ${t.arrivalTime}</span>
-                            <span class="text-blue-400">View Route</span>
-                        </div>
-                    </div>`;
+            trains.forEach(t => {
+                container.innerHTML += `
+                <div onclick="trackTrain('${t.trainNumber}')" class="glass p-5 rounded-2xl active:scale-95 transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold text-sm"><span class="text-blue-500 mr-2">${t.trainNumber}</span> ${t.trainName}</h3>
+                    </div>
+                    <div class="flex justify-between text-xs font-mono text-slate-400">
+                        <span class="text-white font-bold">${t.departureTime} → ${t.arrivalTime}</span>
+                        <span>${t.duration}</span>
+                    </div>
+                </div>`;
             });
         }
 
-        // Live Tracking UI
-        async function trackDirect(num) {
-            const trainNo = num || document.getElementById('directTrain').value;
-            showTrack();
-            const content = document.getElementById('tracker-content');
-            content.innerHTML = "<div class='text-center py-20'>Establishing Satellite Link...</div>";
+        // 3. Live Tracker Logic
+        async function trackTrain(num) {
+            changeView('track');
+            const container = document.getElementById('track-container');
+            container.innerHTML = "<div class='text-center py-20 animate-pulse'>Establishing Pulse...</div>";
             
             const date = new Date().toISOString().slice(0,10).replace(/-/g,"");
-            const res = await fetch(`/api/status?trainNo=${trainNo}&date=${date}`);
+            const res = await fetch(`/api/status?trainNo=${num}&date=${date}`);
             const data = await res.json();
             
-            if(data.body) renderTracker(data.body);
+            if(data.body) renderTrack(data.body);
         }
 
-        function renderTracker(body) {
-            document.getElementById('tracker-title').innerText = body.train_status_message;
-            const content = document.getElementById('tracker-content');
-            content.innerHTML = "";
-            
-            let reachedCurrent = false;
+        function renderTrack(body) {
+            document.getElementById('track-header').innerText = body.train_status_message;
+            const container = document.getElementById('track-container');
+            container.innerHTML = "";
+            let reached = false;
+
             body.stations.forEach((s, i) => {
                 const isCurrent = s.stationCode === body.current_station;
-                if(isCurrent) reachedCurrent = true;
-
-                content.innerHTML += `
-                    <div class="relative flex items-center pl-16 py-6 group">
-                        <div class="absolute left-[24px] w-3 h-3 rounded-full z-20 ${reachedCurrent ? 'bg-blue-500' : 'bg-slate-700'}"></div>
+                if(isCurrent) reached = true;
+                
+                container.innerHTML += `
+                    <div class="relative flex items-start pl-16 py-6 animate__animated animate__fadeInUp" style="animation-delay: ${i*0.05}s">
+                        <div class="absolute left-[24px] w-3 h-3 rounded-full z-20 ${reached ? 'bg-blue-500' : 'bg-slate-700'}"></div>
+                        ${isCurrent ? `<div class="absolute left-4 top-5 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-2xl z-30">🚆</div>` : ''}
                         
-                        ${isCurrent ? `
-                            <div class="train-pulsar">🚆</div>
-                            <div class="absolute left-[70px] top-4 bg-green-700 text-[10px] px-2 py-1 rounded font-bold">
-                                ${body.train_status_message}
-                            </div>
-                        ` : ''}
-
                         <div class="flex-1">
-                            <h4 class="text-xs font-bold ${reachedCurrent ? 'text-white' : 'text-slate-500'}">${s.stationName}</h4>
-                            <p class="text-[9px] text-slate-500">${s.distance} km • Platform ${s.platformNumber || '--'}</p>
+                            <h4 class="text-xs font-bold ${reached ? 'text-white' : 'text-slate-500'} uppercase">${s.stationName}</h4>
+                            <p class="text-[10px] text-slate-500 font-mono mt-1">${s.distance} KM • PF ${s.platformNumber || '-'}</p>
                         </div>
-                        <div class="text-right text-[11px] font-bold">
-                            <div class="${reachedCurrent ? 'text-green-500' : 'text-slate-600'}">${s.arrivalTime !== "0" ? s.arrivalTime : '--'}</div>
-                            <div class="text-slate-500 text-[9px]">Dept: ${s.departureTime !== "0" ? s.departureTime : 'End'}</div>
+                        <div class="text-right">
+                            <p class="text-xs font-black ${reached ? 'text-green-500' : 'text-slate-600'}">${s.arrivalTime !== "0" ? s.arrivalTime : '--'}</p>
+                            <p class="text-[9px] text-slate-500">DEPT: ${s.departureTime !== "0" ? s.departureTime : 'END'}</p>
                         </div>
                     </div>`;
             });
-
-            // Progress bar update
             const idx = body.stations.findIndex(s => s.stationCode === body.current_station);
-            const progress = ((idx + 1) / body.stations.length) * 100;
-            document.getElementById('active-track').style.height = `${progress}%`;
+            document.getElementById('active-track').style.height = ((idx+1)/body.stations.length*100) + "%";
         }
     </script>
 </body>
