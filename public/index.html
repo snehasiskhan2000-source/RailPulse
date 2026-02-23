@@ -2,26 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RailPulse | Real-Time Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RailPulse | Live Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
-<body class="text-white">
+<body class="text-white overflow-x-hidden">
 
-    <div class="max-w-md mx-auto p-4 min-h-screen pb-10">
-        <header class="flex justify-between items-center py-6 animate__animated animate__fadeIn">
+    <div class="max-w-md mx-auto p-4 min-h-screen">
+        <header class="flex justify-between items-center py-6">
             <h1 class="text-3xl font-black italic text-blue-500">RAIL<span class="text-white">PULSE</span></h1>
-            <div class="bg-blue-600/10 border border-blue-500/30 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-blue-400">SYSTEM LIVE</div>
+            <div class="bg-blue-600/20 border border-blue-500/30 px-3 py-1 rounded-full text-[10px] font-bold text-blue-400">SYSTEM LIVE</div>
         </header>
 
-        <div class="rail-card p-6 rounded-3xl shadow-2xl mb-8 animate__animated animate__zoomIn">
-            <p class="text-slate-500 text-[10px] font-bold mb-3 tracking-[0.2em] uppercase">Enter Train Number</p>
+        <div class="rail-card p-6 rounded-3xl mb-8 animate__animated animate__fadeIn">
+            <p class="text-slate-500 text-[10px] font-bold mb-3 tracking-widest uppercase">Identify Active Pulse</p>
             <div class="flex gap-2">
-                <input id="trainNo" type="number" placeholder="e.g., 12102" 
-                    class="w-full bg-slate-800/50 rounded-2xl p-4 outline-none border border-slate-700 focus:border-blue-500 text-lg font-bold transition-all">
-                <button onclick="locatePulse()" class="bg-blue-600 p-4 rounded-2xl hover:bg-blue-500 shadow-lg shadow-blue-500/20 active:scale-90 transition-all">
+                <input id="trainNo" type="number" placeholder="Enter Train Number" 
+                    class="w-full bg-slate-800/50 rounded-2xl p-4 outline-none border border-slate-700 focus:border-blue-500 text-lg font-bold">
+                <button onclick="syncPulse()" class="bg-blue-600 p-4 rounded-2xl hover:bg-blue-500 shadow-lg transition-all active:scale-95">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="3"/></svg>
                 </button>
             </div>
@@ -32,81 +32,79 @@
             <div id="stationList" class="space-y-6"></div>
         </div>
 
-        <div id="msgBox" class="text-center py-20 animate__animated animate__fadeIn">
-            <div class="text-5xl opacity-20 mb-4">🚆</div>
+        <div id="statusMsg" class="text-center py-20 animate__animated animate__fadeIn">
+            <div class="text-5xl opacity-10 mb-4">🚄</div>
             <p class="text-slate-500 text-sm">Waiting for train number...</p>
         </div>
     </div>
 
     <script>
-        function getYMD(offset = 0) {
+        function getAPIFormatDate(offset = 0) {
             const d = new Date(Date.now() - (offset * 24 * 60 * 60 * 1000));
             return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
         }
 
-        async function locatePulse() {
+        async function syncPulse() {
             const trainNo = document.getElementById('trainNo').value;
-            const msg = document.getElementById('msgBox');
+            const msg = document.getElementById('statusMsg');
             const view = document.getElementById('trackingView');
             const list = document.getElementById('stationList');
 
             if (!trainNo) return;
-
             msg.classList.remove('hidden');
             view.classList.add('hidden');
-            
-            let dataFound = null;
 
-            // Step: Cycle through 3 days to fix "Wrong start date"
-            for (let i = 0; i <= 2; i++) {
-                const date = getYMD(i);
-                msg.innerHTML = `<div class="animate-pulse text-blue-400 font-bold tracking-widest text-xs uppercase">Attempting Date: ${date}</div>`;
+            let foundData = null;
+            // Check Today, then Yesterday (handles the "Wrong start date" error)
+            for (let i = 0; i <= 1; i++) {
+                const date = getAPIFormatDate(i);
+                msg.innerHTML = `<div class="animate-pulse text-blue-400 font-bold text-xs uppercase">Syncing Pulse: ${date}</div>`;
                 
                 try {
                     const response = await fetch(`/api/status?trainNo=${trainNo}&date=${date}`);
                     const result = await response.json();
 
-                    if (result.status && result.data && result.data.stations) {
-                        dataFound = result.data;
+                    // CRITICAL FIX: Looking for 'body' as per your screenshot
+                    if (result.status?.result === "success" && result.body?.stations) {
+                        foundData = result;
                         break;
                     }
-                } catch (e) { console.error("Pulse miss."); }
+                } catch (e) { console.error("Retry shift..."); }
             }
 
-            if (dataFound) {
+            if (foundData) {
                 msg.classList.add('hidden');
                 view.classList.remove('hidden');
-                renderUI(dataFound);
+                renderPulse(foundData.body);
             } else {
-                msg.innerHTML = `<div class="text-red-500 font-bold uppercase">Train Not Found</div><p class="text-slate-500 text-[10px] mt-2 font-bold tracking-widest">CHECK SOURCE DEPARTURE SCHEDULE</p>`;
+                msg.innerHTML = `<div class="text-red-500 font-bold uppercase">Train Not Found</div><p class="text-slate-500 text-[10px] mt-2 font-bold tracking-widest uppercase">Verify schedule or try again later</p>`;
             }
         }
 
-        function renderUI(data) {
+        function renderPulse(body) {
             const list = document.getElementById('stationList');
-            list.innerHTML = `<div class="text-center mb-8 font-black text-blue-500 text-[10px] tracking-[0.3em] uppercase italic">${data.train_name}</div>`;
+            const currentStationCode = body.current_station;
+            list.innerHTML = `<div class="text-center mb-8 font-black text-blue-500 text-[10px] tracking-[0.3em] uppercase italic">PULSE: ${body.train_status_message || 'TRACKING'}</div>`;
 
-            data.stations.forEach((s, i) => {
-                const isArrived = s.has_arrived;
-                const isLate = s.delay_minutes > 0;
-                // Highlight the station where the train is currently located
-                const isCurrent = isArrived && (i === data.stations.length - 1 || !data.stations[i+1].has_arrived);
+            body.stations.forEach((s, i) => {
+                const isCurrent = s.stationCode === currentStationCode;
+                const arrived = s.arrivalTime !== "0"; // Crude check for arrived stations
 
                 list.innerHTML += `
-                    <div class="relative pl-12 animate__animated animate__fadeInUp" style="animation-delay: ${i * 0.05}s">
-                        <div class="station-node ${isArrived ? 'arrived' : 'upcoming'}"></div>
+                    <div class="relative pl-12 animate__animated animate__fadeInUp" style="animation-delay: ${i * 0.03}s">
+                        <div class="station-node ${arrived ? 'arrived' : 'upcoming'}"></div>
                         ${isCurrent ? '<div class="pulse-animation"></div><div class="absolute left-[7px] top-[-5px] z-20 text-xl">🚆</div>' : ''}
 
                         <div class="rail-card p-5 rounded-2xl flex justify-between items-center ${isCurrent ? 'ring-1 ring-blue-500 bg-blue-500/10' : ''}">
                             <div>
-                                <h3 class="font-bold text-sm ${isCurrent ? 'text-blue-400' : 'text-slate-100'}">${s.station_name}</h3>
-                                <p class="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-wider">PF ${s.platform_number || '--'} • DIST ${s.distance}KM</p>
+                                <h3 class="font-bold text-sm ${isCurrent ? 'text-blue-400' : 'text-slate-100'}">${s.stationName}</h3>
+                                <p class="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-wider">CODE: ${s.stationCode}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-[10px] font-black ${isLate ? 'text-red-500' : 'text-emerald-500'}">
-                                    ${isLate ? s.delay_minutes + 'M LATE' : 'ON TIME'}
+                                <p class="text-[10px] font-black text-emerald-500 uppercase">
+                                    ${s.departureTime === "0" ? 'Origin' : 'Stop'}
                                 </p>
-                                <p class="text-[10px] text-slate-400 mt-1 font-mono">${s.scheduled_arrival || s.scheduled_departure}</p>
+                                <p class="text-[10px] text-slate-400 mt-1 font-mono">${s.arrivalTime !== "0" ? s.arrivalTime : s.departureTime}</p>
                             </div>
                         </div>
                     </div>
