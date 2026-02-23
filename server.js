@@ -7,19 +7,18 @@ const app = express();
 app.use(cors());
 app.use(express.static('public'));
 
+// Heartbeat for Uptime Robot
 app.get('/healthz', (req, res) => res.status(200).send('RailPulse Active'));
 
 app.get('/api/status', async (req, res) => {
     const { trainNo, date } = req.query;
     
-    console.log(`RailPulse Query: Train ${trainNo} on Date ${date}`);
-
     const options = {
         method: 'GET',
         url: 'https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status',
         params: {
             train_number: trainNo,
-            departure_date: date,
+            departure_date: date, // YYYYMMDD
             isH5: 'true',
             client: 'web'
         },
@@ -33,10 +32,12 @@ app.get('/api/status', async (req, res) => {
         const response = await axios.request(options);
         res.json(response.data);
     } catch (error) {
-        console.error("RapidAPI Error Detail:", error.response ? error.response.data : error.message);
-        res.status(500).json({ error: 'API Error', details: error.message });
+        // Forward the exact error from RapidAPI to the frontend
+        const status = error.response ? error.response.status : 500;
+        const data = error.response ? error.response.data : { message: "Internal Error" };
+        res.status(status).json(data);
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('RailPulse Engine Started'));
+app.listen(PORT, () => console.log('RailPulse Engine Online'));
