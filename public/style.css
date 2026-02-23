@@ -1,52 +1,48 @@
 :root {
     --primary: #3b82f6;
-    --bg-dark: #0f172a;
-    --card-bg: #1e293b;
-    --accent-green: #10b981;
-    --accent-red: #ef4444;
+    --bg-dark: #070b14;
+    --card-bg: #161e2e;
+    --accent: #10b981;
 }
 
 body {
     background-color: var(--bg-dark);
-    font-family: 'Inter', sans-serif;
-    overflow-x: hidden;
+    font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Glassmorphism Card */
 .rail-card {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: transform 0.3s ease;
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-/* Vertical Track Line */
 .track-line {
     position: absolute;
     left: 20px;
     top: 0;
     bottom: 0;
-    width: 3px;
-    background: linear-gradient(to bottom, var(--primary), #1e293b);
+    width: 2px;
+    background: #2d3748;
 }
 
-/* Glowing Pulse for Current Station */
-.pulse-dot {
-    width: 12px;
-    height: 12px;
-    background: var(--accent-green);
+.station-node {
+    position: absolute;
+    left: 13px;
+    top: 6px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
-    animation: pulse 2s infinite;
+    border: 3px solid var(--bg-dark);
+    z-index: 10;
 }
 
-@keyframes pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
+.node-passed { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.node-upcoming { background: #4a5568; }
 
-.train-emoji {
-    font-size: 24px;
-    filter: drop-shadow(0 0 5px var(--primary));
+.status-tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
 }
