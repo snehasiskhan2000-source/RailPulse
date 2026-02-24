@@ -1,16 +1,15 @@
 {
-  "name": "railpulse",
+  "name": "where-is-my-train-clone",
   "version": "1.0.0",
-  "description": "RailPulse - Full India Railway Timetable",
+  "description": "Train tracking web app clone",
   "main": "server.js",
   "scripts": {
-    "build-db": "node buildDatabase.js",
     "start": "node server.js"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.0",
-    "express": "^4.18.2",
+    "axios": "^1.6.2",
     "cors": "^2.8.5",
-    "stream-json": "^1.7.5"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
   }
 }
