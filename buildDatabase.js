@@ -4,7 +4,7 @@ const Database = require("better-sqlite3");
 const { parser } = require("stream-json");
 const { streamArray } = require("stream-json/streamers/StreamArray");
 
-const SCHEDULE_URL = "PUT_YOUR_DRIVE_DIRECT_LINK_HERE";
+const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1O8sx5NvLP3G9Z2mj0fYwLnXJ3AvKopXP";
 
 async function downloadFile() {
   console.log("Downloading schedules.json...");
