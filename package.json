@@ -1,0 +1,16 @@
+{
+  "name": "railpulse",
+  "version": "1.0.0",
+  "description": "RailPulse - Full India Railway Timetable App",
+  "main": "server.js",
+  "scripts": {
+    "build-db": "node buildDatabase.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "stream-json": "^1.7.5"
+  }
+}
