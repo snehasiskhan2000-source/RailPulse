@@ -1,51 +1,49 @@
-const fromInp = document.getElementById('fromInput');
-const toInp = document.getElementById('toInput');
+const fromInput = document.getElementById('fromInput');
+const toInput = document.getElementById('toInput');
 const autoList = document.getElementById('auto-list');
 
-// Professional Autocomplete Handler
-async function getSuggestions(e) {
+async function handleTyping(e) {
     const input = e.target;
-    const val = input.value;
+    const query = input.value;
 
-    if (val.length < 2) {
+    if (query.length < 2) {
         autoList.classList.add('hidden');
         return;
     }
 
-    const res = await fetch(`/api/stations?q=${encodeURIComponent(val)}`);
-    const stations = await res.json();
+    const res = await fetch(`/api/stations?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
 
-    if (stations.length > 0) {
-        autoList.innerHTML = stations.map(s => `
-            <div class="suggest-item" onclick="selectStn('${input.id}', '${s.name}', '${s.code}')">
-                <span class="stn-badge">${s.code}</span>
+    if (data.length > 0) {
+        autoList.innerHTML = data.map(s => `
+            <div class="item" onclick="selectStn('${input.id}', '${s.name}', '${s.code}')">
+                <span class="badge">${s.code}</span>
                 <span>${s.name}</span>
             </div>
         `).join('');
-        autoList.classList.remove('hidden');
         
-        // Position list under active input
+        // Dynamic positioning to avoid being hidden by keyboard
         const rect = input.getBoundingClientRect();
-        autoList.style.top = (input.offsetTop + 50) + "px";
+        autoList.style.top = (input.offsetTop + 45) + "px";
+        autoList.classList.remove('hidden');
     }
 }
 
 window.selectStn = (id, name, code) => {
-    const el = document.getElementById(id);
-    el.value = name;
-    el.dataset.code = code;
+    const input = document.getElementById(id);
+    input.value = name;
+    input.dataset.code = code; // Saves the code for searching
     autoList.classList.add('hidden');
 };
 
-fromInp.addEventListener('input', getSuggestions);
-toInp.addEventListener('input', getSuggestions);
+fromInput.addEventListener('input', handleTyping);
+toInput.addEventListener('input', handleTyping);
 
-// Search Execution
 document.getElementById('findBtn').onclick = async () => {
-    const from = fromInp.dataset.code;
-    const to = toInp.dataset.code;
+    const from = fromInput.dataset.code;
+    const to = toInput.dataset.code;
 
-    if (!from || !to) return alert("Select stations from list");
+    if (!from || !to) return alert("Please select stations from the list");
 
     document.getElementById('home-view').classList.add('hidden');
     document.getElementById('results-view').classList.remove('hidden');
@@ -53,15 +51,13 @@ document.getElementById('findBtn').onclick = async () => {
     const res = await fetch(`/api/search?from=${from}&to=${to}`);
     const trains = await res.json();
 
-    document.getElementById('train-results').innerHTML = trains.map(t => `
+    document.getElementById('train-list').innerHTML = trains.map(t => `
         <div class="train-card">
-            <div class="t-row">
-                <span class="t-num">${t.number}</span>
+            <div class="card-top">
+                <span class="t-number">${t.number}</span>
                 <span class="t-time">${t.departure} — ${t.arrival}</span>
             </div>
-            <div style="font-size: 14px; color: var(--subtext)">${t.name}</div>
+            <div class="t-name">${t.name}</div>
         </div>
     `).join('');
 };
-
-document.getElementById('backBtn').onclick = () => location.reload();
