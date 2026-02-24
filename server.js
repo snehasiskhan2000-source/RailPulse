@@ -1,56 +1,50 @@
 const express = require("express");
-const Database = require("better-sqlite3");
-const cors = require("cors");
 const path = require("path");
+const Database = require("better-sqlite3");
 
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 3000;
+
+/* Open SQLite */
+const db = new Database(path.join(__dirname, "railpulse.db"));
+
 app.use(express.json());
-
-const db = new Database("railpulse.db");
-
-// Serve frontend
 app.use(express.static(path.join(__dirname, "public")));
 
-// Station autocomplete
+/* ============================= */
+/* 🔎 Station Search API */
+/* ============================= */
 app.get("/api/stations", (req, res) => {
-  const q = req.query.q || "";
-  const result = db.prepare(`
-    SELECT * FROM stations
-    WHERE station_name LIKE ?
-    LIMIT 10
-  `).all(`%${q}%`);
-  res.json(result);
+  const search = req.query.search;
+
+  if (!search) return res.json([]);
+
+  try {
+    const stmt = db.prepare(`
+      SELECT code, name, state
+      FROM stations
+      WHERE name LIKE ? OR code LIKE ?
+      LIMIT 10
+    `);
+
+    const results = stmt.all(`%${search}%`, `%${search}%`);
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
-// Search trains between stations
-app.get("/api/search", (req, res) => {
-  const { from, to } = req.query;
-
-  const trains = db.prepare(`
-    SELECT DISTINCT s1.train_number
-    FROM schedules s1
-    JOIN schedules s2
-      ON s1.train_number = s2.train_number
-    WHERE s1.station_code = ?
-      AND s2.station_code = ?
-      AND s1.stop_sequence < s2.stop_sequence
-  `).all(from, to);
-
-  res.json(trains);
+/* ============================= */
+/* 🚆 Health Check */
+/* ============================= */
+app.get("/api/health", (req, res) => {
+  res.json({ status: "RailPulse API Running 🚀" });
 });
 
-// Full timetable
-app.get("/api/train/:trainNo", (req, res) => {
-  const schedule = db.prepare(`
-    SELECT * FROM schedules
-    WHERE train_number = ?
-    ORDER BY stop_sequence
-  `).all(req.params.trainNo);
-
-  res.json(schedule);
+/* ============================= */
+/* Start Server */
+/* ============================= */
+app.listen(PORT, () => {
+  console.log(`RailPulse running on port ${PORT}`);
 });
-
-app.listen(10000, () =>
-  console.log("RailPulse running 🚄")
-);
