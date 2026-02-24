@@ -1,45 +1,53 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
+app.use(cors());
 app.use(express.static('public'));
 
-// Path to your downloaded GDrive file
+// Path helpers
+const STATIONS_PATH = path.join(__dirname, 'data', 'stations.json');
 const SCHEDULES_PATH = path.join(__dirname, 'data', 'schedules.json');
-let schedules = [];
 
-// Load data safely
-if (fs.existsSync(SCHEDULES_PATH)) {
-    schedules = JSON.parse(fs.readFileSync(SCHEDULES_PATH, 'utf8'));
-}
-
-// 1. Station Autocomplete Logic
+// 1. Instant Autocomplete (Uses the 1.86MB file)
 app.get('/api/stations', (req, res) => {
-    const query = req.query.q.toUpperCase();
-    // Assuming stations.json is small enough for GitHub, otherwise use same GDrive trick
-    const stations = JSON.parse(fs.readFileSync('./data/stations.json', 'utf8'));
-    const filtered = stations.filter(s => 
-        s.name.toUpperCase().includes(query) || s.code.toUpperCase().includes(query)
-    ).slice(0, 8);
-    res.json(filtered);
+    try {
+        const query = req.query.q ? req.query.q.toUpperCase() : '';
+        const stations = JSON.parse(fs.readFileSync(STATIONS_PATH, 'utf8'));
+        const filtered = stations.filter(s => 
+            s.name.toUpperCase().includes(query) || s.code.toUpperCase().includes(query)
+        ).slice(0, 8);
+        res.json(filtered);
+    } catch (err) {
+        res.status(500).json({ error: "Station data not found" });
+    }
 });
 
-// 2. Search Trains (Matching Image 3)
+// 2. Memory-Safe Search (Reads 82MB file only on click)
 app.get('/api/search', (req, res) => {
-    const { from, to } = req.query;
-    const results = schedules.filter(train => {
-        const stops = train.stops.map(s => s.station_code);
-        const fromIdx = stops.indexOf(from);
-        const toIdx = stops.indexOf(to);
-        return fromIdx !== -1 && toIdx !== -1 && fromIdx < toIdx;
-    });
-    res.json(results);
+    try {
+        const { from, to } = req.query;
+        if (!fs.existsSync(SCHEDULES_PATH)) return res.status(404).json({ error: "Database downloading, try in 10s" });
+
+        // Stream or Read file only when searched to save RAM
+        const schedules = JSON.parse(fs.readFileSync(SCHEDULES_PATH, 'utf8'));
+        const results = schedules.filter(train => {
+            const stops = train.stops.map(s => s.station_code);
+            const fIdx = stops.indexOf(from);
+            const tIdx = stops.indexOf(to);
+            return fIdx !== -1 && tIdx !== -1 && fIdx < tIdx;
+        });
+        res.json(results.slice(0, 20)); // Limit results for mobile speed
+    } catch (err) {
+        res.status(500).json({ error: "Search failed" });
+    }
 });
 
-// 3. Live Tracking (RapidAPI)
+// 3. Live tracking using your host
 app.get('/api/live/:trainNo', async (req, res) => {
     try {
         const response = await axios.get('https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status', {
@@ -51,9 +59,9 @@ app.get('/api/live/:trainNo', async (req, res) => {
         });
         res.json(response.data);
     } catch (err) {
-        res.status(500).json({ error: "Live tracking currently unavailable" });
+        res.status(500).json({ error: "Live API Error" });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server active on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
