@@ -12,7 +12,7 @@ const db = new Database("railpulse.db");
 // Serve frontend
 app.use(express.static(path.join(__dirname, "public")));
 
-// Station Autocomplete
+// Station autocomplete
 app.get("/api/stations", (req, res) => {
   const q = req.query.q || "";
   const result = db.prepare(`
@@ -40,19 +40,17 @@ app.get("/api/search", (req, res) => {
   res.json(trains);
 });
 
-// Full timetable of a train
+// Full timetable
 app.get("/api/train/:trainNo", (req, res) => {
-  const trainNo = req.params.trainNo;
-
   const schedule = db.prepare(`
     SELECT * FROM schedules
     WHERE train_number = ?
     ORDER BY stop_sequence
-  `).all(trainNo);
+  `).all(req.params.trainNo);
 
   res.json(schedule);
 });
 
 app.listen(10000, () =>
-  console.log("RailPulse Server Running 🚄")
+  console.log("RailPulse running 🚄")
 );
