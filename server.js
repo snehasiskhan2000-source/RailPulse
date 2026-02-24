@@ -5,15 +5,22 @@ const Database = require("better-sqlite3");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-/* Open SQLite */
+console.log("Opening database...");
 const db = new Database(path.join(__dirname, "railpulse.db"));
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ============================= */
-/* 🔎 Station Search API */
-/* ============================= */
+/* ========================= */
+/* ✅ API TEST ROUTE */
+/* ========================= */
+app.get("/api/test", (req, res) => {
+  res.json({ status: "API Working 🚀" });
+});
+
+/* ========================= */
+/* 🔎 STATION SEARCH */
+/* ========================= */
 app.get("/api/stations", (req, res) => {
   const search = req.query.search;
 
@@ -35,16 +42,9 @@ app.get("/api/stations", (req, res) => {
   }
 });
 
-/* ============================= */
-/* 🚆 Health Check */
-/* ============================= */
-app.get("/api/health", (req, res) => {
-  res.json({ status: "RailPulse API Running 🚀" });
-});
-
-/* ============================= */
-/* Start Server */
-/* ============================= */
+/* ========================= */
+/* SERVER START */
+/* ========================= */
 app.listen(PORT, () => {
-  console.log(`RailPulse running on port ${PORT}`);
+  console.log("RailPulse running on port " + PORT);
 });
