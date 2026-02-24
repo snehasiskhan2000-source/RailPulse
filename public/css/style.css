@@ -1,189 +1,81 @@
 :root {
-    --bg-dark: #12141d;
-    --card-bg: #1e212a;
-    --accent-green: #2e7d32;
-    --accent-blue: #4285f4;
-    --text-main: #ffffff;
-    --text-dim: #9aa0a6;
+    --bg: #12141d;
+    --card: #1e212a;
+    --green: #27ae60;
+    --blue: #4285f4;
     --border: #30363d;
-    --ripple: rgba(255, 255, 255, 0.1);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
-    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-    overflow-x: hidden;
+    background: var(--bg);
+    color: white;
+    font-family: sans-serif;
+    margin: 0;
 }
 
-/* Page Transitions */
-.view {
-    animation: fadeIn 0.3s ease-out;
-    min-height: 100vh;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.hidden { display: none !important; }
-
-/* Navbar */
-.navbar, .results-header, .live-header {
-    background: #1a1c24;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-/* Main Search Card (Image 1 & 2) */
-.input-card {
-    background: var(--card-bg);
-    margin: 15px;
-    padding: 12px;
+.search-card {
+    background: var(--card);
+    margin: 20px;
+    padding: 15px;
     border-radius: 12px;
     border: 1px solid var(--border);
 }
 
-.row {
+.input-group {
     display: flex;
     align-items: center;
-    padding: 12px 5px;
+    padding: 10px 0;
 }
 
-.row input {
+.input-group input {
     background: transparent;
     border: none;
     color: white;
     font-size: 16px;
     width: 100%;
-    margin-left: 12px;
+    margin-left: 10px;
     outline: none;
 }
 
-.divider {
-    position: relative;
-    height: 1px;
-    background: var(--border);
-    margin: 5px 40px;
-}
-
-#swapBtn {
-    position: absolute;
-    right: -30px;
-    top: -18px;
-    background: #252833;
-    border: 1px solid var(--border);
-    color: var(--accent-green);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s;
-}
-
-#swapBtn:active { transform: scale(0.9) rotate(180deg); }
-
-.find-btn {
-    background: var(--accent-green);
+#findBtn {
+    background: var(--green);
     color: white;
     width: 100%;
+    padding: 15px;
     border: none;
-    padding: 14px;
     border-radius: 8px;
     font-weight: bold;
-    font-size: 16px;
     margin-top: 15px;
-    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
 }
 
-/* Autocomplete List (Image 2) */
+/* Autocomplete Box Styling */
 #autocomplete-list {
+    position: absolute;
+    left: 20px;
+    right: 20px;
     background: #252833;
-    margin: -10px 15px 0;
-    border-radius: 0 0 12px 12px;
+    border-radius: 8px;
+    z-index: 1000;
     border: 1px solid var(--border);
-    max-height: 250px;
+    max-height: 300px;
     overflow-y: auto;
 }
 
-.suggest {
+.suggest-item {
     display: flex;
     align-items: center;
-    padding: 14px;
+    padding: 15px;
     border-bottom: 1px solid var(--border);
 }
 
-.badge {
+.stn-code {
     background: #3b4252;
-    color: var(--accent-blue);
-    padding: 4px 8px;
+    color: var(--blue);
+    padding: 3px 6px;
     border-radius: 4px;
     font-size: 12px;
     font-weight: bold;
     margin-right: 12px;
 }
 
-/* Train Result Cards (Image 3) */
-.train-item {
-    background: var(--card-bg);
-    margin: 10px 15px;
-    padding: 15px;
-    border-radius: 10px;
-    border-left: 4px solid var(--accent-blue);
-}
-
-.t-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-}
-
-.t-name { color: var(--text-dim); font-size: 14px; }
-
-/* Timeline UI (Image 4) */
-.timeline-stop {
-    display: flex;
-    padding: 0 15px;
-    height: 80px;
-}
-
-.node-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0 15px;
-}
-
-.node {
-    width: 14px;
-    height: 14px;
-    background: #444;
-    border-radius: 50%;
-    z-index: 2;
-}
-
-.node.active { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
-
-.line-v {
-    width: 2px;
-    height: 100%;
-    background: #333;
-}
-
-.time { font-size: 12px; width: 60px; color: var(--text-dim); text-align: right; }
+.hidden { display: none !important; }
