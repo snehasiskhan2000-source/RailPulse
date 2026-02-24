@@ -3,29 +3,27 @@ const Database = require("better-sqlite3");
 const { parser } = require("stream-json");
 const { streamArray } = require("stream-json/streamers/StreamArray");
 
-const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1O8sx5NvLP3G9Z2mj0fYwLnXJ3AvKopXP";
+const SCHEDULE_URL =
+  "https://drive.google.com/uc?export=download&id=1O8sx5NvLP3G9Z2mj0fYwLnXJ3AvKopXP";
 
 async function downloadSchedules() {
-  console.log("Downloading schedules.json from Google Drive...");
+  console.log("Downloading schedules.json...");
+
   const response = await fetch(SCHEDULE_URL);
 
   if (!response.ok) {
-    throw new Error("Failed to download schedules.json");
+    throw new Error("Download failed");
   }
 
-  const fileStream = fs.createWriteStream("schedules.json");
+  // Convert to ArrayBuffer (safe for Node 22)
+  const buffer = Buffer.from(await response.arrayBuffer());
 
-  await new Promise((resolve, reject) => {
-    response.body.pipe(fileStream);
-    response.body.on("error", reject);
-    fileStream.on("finish", resolve);
-  });
+  fs.writeFileSync("schedules.json", buffer);
 
   console.log("Download complete.");
 }
 
 async function buildDatabase() {
-
   await downloadSchedules();
 
   const db = new Database("railpulse.db");
@@ -60,16 +58,22 @@ async function buildDatabase() {
   `);
 
   console.log("Importing stations...");
-  const stations = JSON.parse(fs.readFileSync("railways-master/stations.json"));
+  const stations = JSON.parse(
+    fs.readFileSync("railways-master/stations.json")
+  );
   const insertStation = db.prepare("INSERT INTO stations VALUES (?, ?)");
-  stations.forEach(s => {
+
+  stations.forEach((s) => {
     insertStation.run(s.station_code, s.station_name);
   });
 
   console.log("Importing trains...");
-  const trains = JSON.parse(fs.readFileSync("railways-master/trains.json"));
+  const trains = JSON.parse(
+    fs.readFileSync("railways-master/trains.json")
+  );
   const insertTrain = db.prepare("INSERT INTO trains VALUES (?, ?)");
-  trains.forEach(t => {
+
+  trains.forEach((t) => {
     insertTrain.run(t.train_number, t.train_name);
   });
 
@@ -79,7 +83,8 @@ async function buildDatabase() {
     "INSERT INTO schedules VALUES (?, ?, ?, ?, ?)"
   );
 
-  const pipeline = fs.createReadStream("schedules.json")
+  const pipeline = fs
+    .createReadStream("schedules.json")
     .pipe(parser())
     .pipe(streamArray());
 
