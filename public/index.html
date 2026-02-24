@@ -1,22 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>RailPulse</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Where Is My Train Clone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
+    <nav class="navbar">
+        <i class="material-icons">menu</i>
+        <span>Where is my Train</span>
+        <div class="nav-right">
+            <i class="material-icons">notifications</i>
+            <i class="material-icons">settings</i>
+        </div>
+    </nav>
 
-<h1>RailPulse 🚄</h1>
+    <div class="tabs">
+        <div class="tab active">SPOT</div>
+        <div class="tab">PNR</div>
+        <div class="tab">SEATS</div>
+    </div>
 
-<div class="search-box">
-  <input id="from" placeholder="From Station">
-  <input id="to" placeholder="To Station">
-  <button onclick="search()">Find Trains</button>
-</div>
+    <section id="home-screen" class="page">
+        <div class="search-card">
+            <div class="input-row">
+                <i class="material-icons stn-icon">radio_button_unchecked</i>
+                <input type="text" id="from-stn" placeholder="From Station" autocomplete="off">
+            </div>
+            <div class="divider">
+                <div class="dot-line"></div>
+                <button id="swap-btn"><i class="material-icons">swap_vert</i></button>
+            </div>
+            <div class="input-row">
+                <i class="material-icons stn-icon">location_on</i>
+                <input type="text" id="to-stn" placeholder="To Station" autocomplete="off">
+            </div>
+            <button class="primary-btn" id="find-train-btn">FIND TRAINS</button>
+        </div>
 
-<div id="results"></div>
-<div id="timetable"></div>
+        <div class="suggest-box">
+            <i class="material-icons color-blue">train</i>
+            <input type="text" placeholder="Train No. / Train Name">
+        </div>
 
-<script src="app.js"></script>
+        <div id="autocomplete-results" class="hidden"></div>
+    </section>
+
+    <section id="list-screen" class="page hidden">
+        <div class="results-header">
+            <i class="material-icons" onclick="showPage('home-screen')">arrow_back</i>
+            <div class="route-info">
+                <span id="route-text">HWH → NDLS</span>
+            </div>
+        </div>
+        <div id="train-results-container"></div>
+    </section>
+
+    <section id="live-screen" class="page hidden">
+        <div class="live-header">
+            <i class="material-icons" onclick="showPage('list-screen')">arrow_back</i>
+            <div class="train-title">
+                <h3 id="live-train-name">12301 - Rajdhani Exp</h3>
+                <p>Updated just now</p>
+            </div>
+        </div>
+        <div class="timeline" id="live-timeline"></div>
+    </section>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
