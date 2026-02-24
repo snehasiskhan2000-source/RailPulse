@@ -3,7 +3,7 @@ const path = require("path");
 const Database = require("better-sqlite3");
 
 const DB_PATH = path.join(__dirname, "railpulse.db");
-const STATIONS_PATH = path.join(__dirname, "stations.json");
+const STATIONS_PATH = path.join(__dirname, "railways-master", "stations.json");
 
 console.log("Opening database...");
 const db = new Database(DB_PATH);
@@ -39,8 +39,6 @@ const insert = db.prepare(`
   VALUES (?, ?, ?, ?, ?, ?, ?)
 `);
 
-console.log(`Importing ${geojson.features.length} stations...`);
-
 const insertMany = db.transaction((stations) => {
   for (const feature of stations) {
     const props = feature.properties || {};
@@ -70,6 +68,7 @@ const insertMany = db.transaction((stations) => {
   }
 });
 
+console.log(`Importing ${geojson.features.length} stations...`);
 insertMany(geojson.features);
 
 console.log("✅ Stations imported successfully!");
