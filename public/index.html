@@ -7,52 +7,43 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    <div id="home-page">
-        <nav class="nav">
+    <div id="home-view" class="view">
+        <nav class="navbar">
             <i class="material-icons">menu</i>
             <span>Where is My Train</span>
         </nav>
-        <div class="tabs">
-            <div class="tab active">EXPRESS</div>
-            <div class="tab">METRO</div>
-            <div class="tab">LOCAL</div>
+        <div class="search-section">
+            <div class="input-card">
+                <div class="row"><i class="material-icons circle">radio_button_unchecked</i>
+                    <input type="text" id="fromInput" placeholder="From Station" autocomplete="off">
+                </div>
+                <div class="divider">
+                    <div class="line"></div>
+                    <button id="swapBtn"><i class="material-icons">swap_vert</i></button>
+                </div>
+                <div class="row"><i class="material-icons pin">location_on</i>
+                    <input type="text" id="toInput" placeholder="To Station" autocomplete="off">
+                </div>
+                <button class="find-btn" id="findBtn">Find trains</button>
+            </div>
+            <div id="autocomplete-list" class="hidden"></div>
         </div>
-        <div class="main-card">
-            <div class="input-container">
-                <i class="material-icons">radio_button_unchecked</i>
-                <input type="text" id="fromInput" placeholder="From Station" autocomplete="off">
-                <i class="material-icons close">close</i>
-            </div>
-            <div class="swap-row">
-                <div class="dots"></div>
-                <div class="swap-circle"><i class="material-icons">swap_vert</i></div>
-            </div>
-            <div class="input-container">
-                <i class="material-icons">location_on</i>
-                <input type="text" id="toInput" placeholder="To Station" autocomplete="off">
-                <i class="material-icons close">close</i>
-            </div>
-            <button class="find-btn" id="searchBtn">Find trains</button>
-        </div>
-        <div id="suggest-list" class="hidden"></div>
     </div>
 
-    <div id="results-page" class="hidden">
-        <div class="header-back">
-            <i class="material-icons" onclick="location.reload()">arrow_back</i>
-            <span id="route-header">HWH - AMTA</span>
+    <div id="results-view" class="view hidden">
+        <div class="results-header">
+            <i class="material-icons" onclick="showView('home-view')">arrow_back</i>
+            <span id="route-title">HWH - AMTA</span>
         </div>
-        <div id="train-list-container"></div>
+        <div id="train-container"></div>
     </div>
 
-    <div id="live-page" class="hidden">
+    <div id="live-view" class="view hidden">
         <div class="live-header">
-            <i class="material-icons" onclick="showPage('results-page')">arrow_back</i>
-            <div class="train-info">
-                <b id="train-name-top">38923 - Howrah Amta Local</b>
-            </div>
+            <i class="material-icons" onclick="showView('results-view')">arrow_back</i>
+            <span id="live-train-info">12345 - Express</span>
         </div>
-        <div class="timeline" id="timeline"></div>
+        <div id="live-timeline"></div>
     </div>
 
     <script src="js/app.js"></script>
