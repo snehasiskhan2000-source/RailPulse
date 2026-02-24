@@ -1,36 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Where is My Train</title>
+    <link rel="stylesheet" href="/css/style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    <div id="home-view">
-        <div class="main-card">
-            <div class="input-row">
-                <i class="material-icons">radio_button_unchecked</i>
-                <input type="text" id="fromInput" placeholder="From Station" autocomplete="off">
+    <div id="app">
+        <div id="home-view">
+            <header class="main-header">
+                <i class="material-icons">menu</i>
+                <span>Where is My Train</span>
+            </header>
+
+            <div class="tabs">
+                <div class="tab active">EXPRESS</div>
+                <div class="tab">METRO</div>
+                <div class="tab">LOCAL</div>
             </div>
-            <div class="dot-line"></div>
-            <div class="input-row">
-                <i class="material-icons">location_on</i>
-                <input type="text" id="toInput" placeholder="To Station" autocomplete="off">
-            </div>
-            <div id="autocomplete-list" class="hidden"></div>
-            
-            <button id="findBtn">Find trains</button>
+
+            <main class="search-container">
+                <div class="search-card">
+                    <div class="input-row">
+                        <i class="material-icons stn-icon">radio_button_unchecked</i>
+                        <input type="text" id="fromInput" placeholder="From Station" autocomplete="off">
+                        <i class="material-icons clear-btn">close</i>
+                    </div>
+                    <div class="divider">
+                        <div class="dot-line"></div>
+                        <div class="swap-btn"><i class="material-icons">swap_vert</i></div>
+                    </div>
+                    <div class="input-row">
+                        <i class="material-icons stn-icon">location_on</i>
+                        <input type="text" id="toInput" placeholder="To Station" autocomplete="off">
+                        <i class="material-icons clear-btn">close</i>
+                    </div>
+                    <button id="findBtn">Find trains</button>
+                </div>
+
+                <div id="auto-list" class="auto-dropdown hidden"></div>
+            </main>
+        </div>
+
+        <div id="results-view" class="hidden">
+            <header class="nav-header">
+                <i class="material-icons" id="backBtn">arrow_back</i>
+                <div class="route-info">
+                    <span id="route-text">HWH - AMTA</span>
+                </div>
+            </header>
+            <div id="train-results"></div>
         </div>
     </div>
-
-    <div id="results-view" class="hidden">
-        <div class="header">
-            <i class="material-icons" onclick="location.reload()">arrow_back</i>
-            <span>Search results</span>
-        </div>
-        <div id="train-list"></div>
-    </div>
-
-    <script src="js/app.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
