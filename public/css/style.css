@@ -1,0 +1,126 @@
+:root {
+    --bg: #121212;
+    --card: #1e1e1e;
+    --primary: #2e7d32;
+    --text: #ffffff;
+    --subtext: #b0b0b0;
+    --accent: #4285f4;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    font-family: sans-serif;
+}
+
+.hidden { display: none !important; }
+
+/* Navbar */
+.navbar {
+    background: #1f2128;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.nav-right { margin-left: auto; display: flex; gap: 15px; }
+
+/* Tabs */
+.tabs {
+    display: flex;
+    background: #1f2128;
+    border-bottom: 1px solid #333;
+}
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    font-weight: bold;
+    color: var(--subtext);
+}
+.tab.active {
+    color: var(--text);
+    border-bottom: 3px solid var(--accent);
+}
+
+/* Search Card */
+.search-card {
+    background: var(--card);
+    margin: 15px;
+    padding: 15px;
+    border-radius: 8px;
+}
+.input-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+.input-row input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    width: 100%;
+    outline: none;
+}
+.stn-icon { color: var(--subtext); font-size: 20px; }
+
+.divider { position: relative; height: 20px; }
+.dot-line { border-left: 2px dotted #555; height: 100%; margin-left: 9px; }
+#swap-btn {
+    position: absolute;
+    right: 0;
+    top: -10px;
+    background: var(--bg);
+    border: 1px solid #333;
+    color: var(--primary);
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.primary-btn {
+    background: var(--primary);
+    color: white;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+/* Autocomplete UI */
+#autocomplete-results {
+    background: var(--card);
+    margin: 0 15px;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.suggestion {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+}
+.suggestion .code { color: var(--accent); font-weight: bold; }
+
+/* Timeline UI for Live Status */
+.timeline-item {
+    display: flex;
+    padding: 15px;
+    position: relative;
+}
+.station-dot {
+    width: 12px;
+    height: 12px;
+    background: #555;
+    border-radius: 50%;
+    margin-right: 15px;
+    z-index: 2;
+}
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 30px;
+    height: 100%;
+    border-left: 2px solid #333;
+}
