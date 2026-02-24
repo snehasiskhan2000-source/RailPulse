@@ -1,38 +1,32 @@
-:root { --bg: #12141d; --card: #1e212a; --green: #27ae60; --blue: #4285f4; }
-body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; }
+#home-view { position: relative; }
 
-.main-card { 
-    background: var(--card); margin: 20px; padding: 20px; border-radius: 12px; 
-    position: relative; border: 1px solid #30363d;
-}
-
-.input-row { display: flex; align-items: center; padding: 10px 0; }
-.input-row input { 
-    background: transparent; border: none; color: white; 
-    font-size: 16px; margin-left: 10px; width: 100%; outline: none;
-}
-
-#findBtn { 
-    background: var(--green); color: white; width: 100%; padding: 15px; 
-    border: none; border-radius: 8px; font-weight: bold; margin-top: 15px;
-}
-
-/* FLOATING AUTOCOMPLETE BOX */
 #autocomplete-list {
-    position: absolute; left: 15px; right: 15px; top: 120px;
-    background: #252833; border: 1px solid #444; border-radius: 8px;
-    z-index: 100; max-height: 200px; overflow-y: auto;
+    position: absolute;
+    top: 130px; /* Positioned below inputs */
+    left: 20px;
+    right: 20px;
+    background: #252833;
+    border: 1px solid #4285f4;
+    border-radius: 8px;
+    z-index: 9999 !important; /* Forces it to the front */
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
 }
 
-.item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #333; }
-.code-badge { 
-    background: #3b4252; color: var(--blue); padding: 3px 6px; 
-    border-radius: 4px; font-weight: bold; margin-right: 10px; font-size: 12px;
+.suggest-row {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    color: white;
 }
 
-.hidden { display: none !important; }
-
-/* Result Card Matching Image 3 */
-.t-card { background: var(--card); margin: 10px; padding: 15px; border-radius: 8px; border-left: 4px solid var(--blue); }
-.t-head { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
-.t-name { color: #aaa; font-size: 14px; }
+.stn-code {
+    background: #3b4252;
+    color: #4285f4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 12px;
+    font-weight: bold;
+}
