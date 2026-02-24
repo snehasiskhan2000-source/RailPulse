@@ -1,85 +1,72 @@
-let currentInput = null;
+const fromInput = document.getElementById('fromInput');
+const toInput = document.getElementById('toInput');
+const suggestList = document.getElementById('suggest-list');
 
-// Page Switching Logic
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById(pageId).classList.remove('hidden');
-}
-
-// Autocomplete Logic
-const fromInput = document.getElementById('from-stn');
-const toInput = document.getElementById('to-stn');
-const resultsDiv = document.getElementById('autocomplete-results');
-
-[fromInput, toInput].forEach(input => {
-    input.addEventListener('input', async (e) => {
-        currentInput = e.target;
-        const val = e.target.value;
-        if(val.length < 2) return resultsDiv.classList.add('hidden');
+// 1. Live Autocomplete logic (Image 1 & 2)
+[fromInput, toInput].forEach(el => {
+    el.addEventListener('input', async (e) => {
+        if (e.target.value.length < 2) return suggestList.classList.add('hidden');
+        const res = await fetch(`/api/stations?q=${e.target.value}`);
+        const data = await res.json();
         
-        const data = await API.fetchStations(val);
-        renderSuggestions(data);
+        suggestList.innerHTML = data.map(s => `
+            <div class="suggest-item" onclick="selectStn('${el.id}', '${s.name}', '${s.code}')">
+                <span class="stn-badge">${s.code}</span>
+                <span class="stn-name">${s.name}</span>
+            </div>
+        `).join('');
+        suggestList.classList.remove('hidden');
     });
 });
 
-function renderSuggestions(data) {
-    resultsDiv.innerHTML = data.map(s => `
-        <div class="suggestion" onclick="selectStation('${s.name}', '${s.code}')">
-            <span>${s.name}</span>
-            <span class="code">${s.code}</span>
+function selectStn(inputId, name, code) {
+    document.getElementById(inputId).value = `${name} (${code})`;
+    document.getElementById(inputId).dataset.code = code;
+    suggestList.classList.add('hidden');
+}
+
+// 2. Search Results (Image 3)
+document.getElementById('searchBtn').addEventListener('click', async () => {
+    const from = fromInput.dataset.code;
+    const to = toInput.dataset.code;
+    
+    document.getElementById('home-page').classList.add('hidden');
+    document.getElementById('results-page').classList.remove('hidden');
+    
+    const res = await fetch(`/api/search-trains?from=${from}&to=${to}`);
+    const trains = await res.json();
+    
+    document.getElementById('train-list-container').innerHTML = trains.map(t => `
+        <div class="train-card" onclick="showLive('${t.number}', '${t.name}')">
+            <div class="t-top">
+                <span class="t-no">${t.number}</span>
+                <span class="t-time">${t.departure} — ${t.arrival}</span>
+            </div>
+            <div class="t-name">${t.name}</div>
+            <div class="t-days">Runs Daily</div>
         </div>
     `).join('');
-    resultsDiv.classList.remove('hidden');
-}
-
-window.selectStation = (name, code) => {
-    currentInput.value = `${name} (${code})`;
-    resultsDiv.classList.add('hidden');
-};
-
-// Find Train Click
-document.getElementById('find-train-btn').addEventListener('click', () => {
-    document.getElementById('route-text').innerText = `${fromInput.value} → ${toInput.value}`;
-    showPage('list-screen');
-    // Here you would normally fetch trains between stations
-    renderDummyTrains();
 });
 
-function renderDummyTrains() {
-    const container = document.getElementById('train-results-container');
-    container.innerHTML = `
-        <div class="search-card" onclick="showLiveStatus('12301')">
-            <div style="display:flex; justify-content:space-between">
-                <b>12301 - Rajdhani Exp</b>
-                <span style="color:var(--primary)">Runs Daily</span>
-            </div>
-            <p style="color:var(--subtext); margin:5px 0">16:55 - 10:00 (17h 05m)</p>
-        </div>
-    `;
-}
-
-async function showLiveStatus(trainNo) {
-    showPage('live-screen');
-    document.getElementById('live-timeline').innerHTML = "<p style='padding:20px'>Loading Live Status...</p>";
+// 3. Live Status Timeline (Image 4)
+async function showLive(num, name) {
+    document.getElementById('results-page').classList.add('hidden');
+    document.getElementById('live-page').classList.remove('hidden');
+    document.getElementById('train-name-top').innerText = `${num} - ${name}`;
     
-    // In real app: const data = await API.fetchLiveStatus(trainNo);
-    // Dummy Timeline UI
-    setTimeout(() => {
-        document.getElementById('live-timeline').innerHTML = `
-            <div class="timeline-item">
-                <div class="station-dot"></div>
-                <div>
-                    <b>Howrah Jn</b><br>
-                    <small>Platform 9 • Departed 17:00</small>
-                </div>
+    // Fetch live data from RapidAPI
+    const res = await fetch(`/api/live-status/${num}`);
+    const data = await res.json();
+    
+    // Generate high-end timeline matching Image 4
+    document.getElementById('timeline').innerHTML = data.route.map(stop => `
+        <div class="stop">
+            <div class="stop-time">${stop.arrival || stop.departure}</div>
+            <div class="stop-line"></div>
+            <div class="stop-info">
+                <b>${stop.station_name}</b>
+                <small>Platform ${stop.platform || 'N/A'}</small>
             </div>
-            <div class="timeline-item">
-                <div class="station-dot" style="background:var(--primary)"></div>
-                <div>
-                    <b>Dhanbad Jn</b><br>
-                    <small style="color:var(--primary)">Arrived 20:30 (On Time)</small>
-                </div>
-            </div>
-        `;
-    }, 1000);
+        </div>
+    `).join('');
 }
