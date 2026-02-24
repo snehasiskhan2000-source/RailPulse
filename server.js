@@ -3,36 +3,34 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 
 const app = express();
 app.use(cors());
 app.use(express.static('public'));
 
-const DATA_DIR = path.join(__dirname, 'data');
-const STATIONS_PATH = path.join(DATA_DIR, 'stations.json');
-const SCHEDULES_PATH = path.join(DATA_DIR, 'schedules.json');
+// Path to your data folder on Render
+const STATIONS_PATH = path.join(__dirname, 'data', 'stations.json');
+const SCHEDULES_PATH = path.join(__dirname, 'data', 'schedules.json');
 
-// 1. Station Autocomplete
+// Autocomplete API
 app.get('/api/stations', (req, res) => {
     try {
-        const query = req.query.q ? req.query.q.toUpperCase() : '';
+        const query = (req.query.q || '').toUpperCase();
         const stations = JSON.parse(fs.readFileSync(STATIONS_PATH, 'utf8'));
         const filtered = stations.filter(s => 
             s.name.toUpperCase().includes(query) || s.code.toUpperCase().includes(query)
         ).slice(0, 8);
         res.json(filtered);
     } catch (err) {
-        res.status(500).json([]);
+        console.error("Station API Error:", err);
+        res.json([]);
     }
 });
 
-// 2. Search Trains between stations (Matches Image 3)
+// Train Search API
 app.get('/api/search', (req, res) => {
     try {
         const { from, to } = req.query;
-        if (!fs.existsSync(SCHEDULES_PATH)) return res.status(404).json({ error: "Syncing DB..." });
-
         const schedules = JSON.parse(fs.readFileSync(SCHEDULES_PATH, 'utf8'));
         const results = schedules.filter(train => {
             const stops = train.stops.map(s => s.station_code);
@@ -47,4 +45,4 @@ app.get('/api/search', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`Server live on port ${PORT}`));
