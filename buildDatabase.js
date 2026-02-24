@@ -1,107 +1,84 @@
 const fs = require("fs");
-const Database = require("better-sqlite3");
-const { parser } = require("stream-json");
-const { streamArray } = require("stream-json/streamers/StreamArray");
+const path = require("path");
+const sqlite3 = require("sqlite3").verbose();
 
-const SCHEDULE_URL =
-  "https://drive.google.com/uc?export=download&id=1O8sx5NvLP3G9Z2mj0fYwLnXJ3AvKopXP";
-
-async function downloadSchedules() {
-  console.log("Downloading schedules.json...");
-
-  const response = await fetch(SCHEDULE_URL);
-
-  if (!response.ok) {
-    throw new Error("Download failed");
-  }
-
-  // Convert to ArrayBuffer (safe for Node 22)
-  const buffer = Buffer.from(await response.arrayBuffer());
-
-  fs.writeFileSync("schedules.json", buffer);
-
-  console.log("Download complete.");
-}
+const DB_PATH = path.join(__dirname, "..", "railpulse.db");
+const STATIONS_PATH = path.join(__dirname, "..", "stations.json");
 
 async function buildDatabase() {
-  await downloadSchedules();
+  console.log("Opening database...");
 
-  const db = new Database("railpulse.db");
+  const db = new sqlite3.Database(DB_PATH);
 
-  console.log("Creating tables...");
+  db.serialize(() => {
+    console.log("Creating tables...");
 
-  db.exec(`
-    DROP TABLE IF EXISTS stations;
-    DROP TABLE IF EXISTS trains;
-    DROP TABLE IF EXISTS schedules;
+    db.run(`
+      CREATE TABLE IF NOT EXISTS stations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT UNIQUE,
+        name TEXT,
+        state TEXT,
+        zone TEXT,
+        address TEXT,
+        latitude REAL,
+        longitude REAL
+      )
+    `);
 
-    CREATE TABLE stations (
-      station_code TEXT PRIMARY KEY,
-      station_name TEXT
-    );
+    console.log("Reading stations.json...");
 
-    CREATE TABLE trains (
-      train_number TEXT PRIMARY KEY,
-      train_name TEXT
-    );
+    const raw = fs.readFileSync(STATIONS_PATH, "utf8");
+    const geojson = JSON.parse(raw);
 
-    CREATE TABLE schedules (
-      train_number TEXT,
-      station_code TEXT,
-      arrival TEXT,
-      departure TEXT,
-      stop_sequence INTEGER
-    );
+    if (!geojson.features || !Array.isArray(geojson.features)) {
+      console.error("Invalid GeoJSON format");
+      process.exit(1);
+    }
 
-    CREATE INDEX idx_train ON schedules(train_number);
-    CREATE INDEX idx_station ON schedules(station_code);
-  `);
+    const stations = geojson.features;
 
-  console.log("Importing stations...");
-  const stations = JSON.parse(
-    fs.readFileSync("railways-master/stations.json")
-  );
-  const insertStation = db.prepare("INSERT INTO stations VALUES (?, ?)");
+    console.log(`Importing ${stations.length} stations...`);
 
-  stations.forEach((s) => {
-    insertStation.run(s.station_code, s.station_name);
+    const stmt = db.prepare(`
+      INSERT OR IGNORE INTO stations
+      (code, name, state, zone, address, latitude, longitude)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stations.forEach((feature) => {
+      const props = feature.properties || {};
+      const geometry = feature.geometry;
+
+      let lat = null;
+      let lon = null;
+
+      if (
+        geometry &&
+        geometry.type === "Point" &&
+        Array.isArray(geometry.coordinates)
+      ) {
+        lon = geometry.coordinates[0];
+        lat = geometry.coordinates[1];
+      }
+
+      stmt.run(
+        props.code || null,
+        props.name || null,
+        props.state || null,
+        props.zone || null,
+        props.address || null,
+        lat,
+        lon
+      );
+    });
+
+    stmt.finalize();
+
+    console.log("✅ Stations imported successfully!");
   });
 
-  console.log("Importing trains...");
-  const trains = JSON.parse(
-    fs.readFileSync("railways-master/trains.json")
-  );
-  const insertTrain = db.prepare("INSERT INTO trains VALUES (?, ?)");
-
-  trains.forEach((t) => {
-    insertTrain.run(t.train_number, t.train_name);
-  });
-
-  console.log("Streaming schedules (this may take a few minutes)...");
-
-  const insertSchedule = db.prepare(
-    "INSERT INTO schedules VALUES (?, ?, ?, ?, ?)"
-  );
-
-  const pipeline = fs
-    .createReadStream("schedules.json")
-    .pipe(parser())
-    .pipe(streamArray());
-
-  pipeline.on("data", ({ value }) => {
-    insertSchedule.run(
-      value.train_number,
-      value.station_code,
-      value.arrival,
-      value.departure,
-      value.stop_sequence
-    );
-  });
-
-  pipeline.on("end", () => {
-    console.log("Database built successfully 🚄");
-    fs.unlinkSync("schedules.json");
-  });
+  db.close();
 }
 
 buildDatabase();
