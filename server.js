@@ -8,70 +8,88 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
 app.use(express.static('public'));
 
-// CONFIGURATION
-// Use your Google Drive File ID here
+// --- CONFIGURATION ---
+// 1. Replace with your actual Google Drive File ID
 const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1_9g-7LTRWUMkp3219RGBQ1POpXwnPFws";
-const STATIONS_PATH = path.join(__dirname, 'data', 'stations.json');
+
+// 2. Replace with your full RapidAPI Key from your screenshot
+const RAPID_API_KEY = "96e8e0..."; 
+const RAPID_API_HOST = "indian-railway-irctc.p.rapidapi.com";
 
 let schedules = [];
 let stations = [];
 
-// 1. Load Stations for Autocomplete (Local)
+// Load Local Stations (For Autocomplete)
 try {
-    const rawData = fs.readFileSync(STATIONS_PATH, 'utf8');
-    stations = JSON.parse(rawData);
-    console.log(`✅ Loaded ${stations.length} stations for autocomplete.`);
-} catch (err) {
-    console.error("❌ Error loading stations.json:", err.message);
+    stations = JSON.parse(fs.readFileSync('./data/stations.json', 'utf8'));
+    console.log(`✅ ${stations.length} stations loaded locally.`);
+} catch (e) {
+    console.error("❌ Error loading stations.json");
 }
 
-// 2. Load Schedules (Remote from GDrive)
+// Load Remote Schedules (For Search)
 async function loadSchedules() {
     try {
-        console.log("⏳ Fetching 21MB schedule database...");
-        const response = await axios.get(SCHEDULE_URL);
-        schedules = response.data;
-        console.log(`✅ Success: ${schedules.length} train schedules loaded.`);
-    } catch (err) {
-        console.error("❌ Failed to load schedules from GDrive:", err.message);
+        const res = await axios.get(SCHEDULE_URL);
+        schedules = res.data;
+        console.log(`✅ ${schedules.length} schedules loaded from GDrive.`);
+    } catch (e) {
+        console.error("❌ GDrive Load Failed:", e.message);
     }
 }
 loadSchedules();
 
 // --- API ROUTES ---
 
-// Autocomplete Route
+// 1. Station Autocomplete
 app.get('/api/stations/search', (req, res) => {
     const query = req.query.q?.toLowerCase() || '';
     if (query.length < 2) return res.json([]);
-
     const matches = stations.filter(s => 
-        s.name.toLowerCase().includes(query) || 
-        s.code.toLowerCase().includes(query)
-    ).slice(0, 15);
+        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
+    ).slice(0, 10);
     res.json(matches);
 });
 
-// Train Search Route
+// 2. Train Search
 app.get('/api/trains/find', (req, res) => {
-    const from = req.query.from?.trim().toUpperCase();
-    const to = req.query.to?.trim().toUpperCase();
-
-    if (!from || !to) return res.json([]);
-
-    // Filter trains that stop at both stations in the correct order
+    const from = req.query.from?.toUpperCase();
+    const to = req.query.to?.toUpperCase();
     const results = schedules.filter(train => {
-        const stopCodes = train.stops.map(s => s.station_code.toUpperCase());
-        const fromIdx = stopCodes.indexOf(from);
-        const toIdx = stopCodes.indexOf(to);
-        
-        return fromIdx !== -1 && toIdx !== -1 && fromIdx < toIdx;
+        const codes = train.stops.map(s => s.station_code.toUpperCase());
+        const fIdx = codes.indexOf(from);
+        const tIdx = codes.indexOf(to);
+        return fIdx !== -1 && tIdx !== -1 && fIdx < tIdx;
     });
-
     res.json(results);
 });
 
-app.listen(PORT, () => console.log(`🚀 Server active on port ${PORT}`));
+// 3. RapidAPI Live Status Proxy
+app.get('/api/train/live/:trainNo', async (req, res) => {
+    const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const options = {
+        method: 'GET',
+        url: 'https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status',
+        params: {
+            departure_date: today,
+            isH5: 'true',
+            client: 'web',
+            deviceIdentifier: 'Mozilla/5.0',
+            train_number: req.params.trainNo
+        },
+        headers: {
+            'x-rapidapi-key': RAPID_API_KEY,
+            'x-rapidapi-host': RAPID_API_HOST
+        }
+    };
+    try {
+        const response = await axios.request(options);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: "API Error" });
+    }
+});
+
+app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
