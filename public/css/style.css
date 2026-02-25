@@ -1,92 +1,52 @@
 :root {
-    --bg: #121212;
-    --card: #1e1e1e;
-    --accent: #2e7d32; /* Green from your pic */
+    --bg: #0f1217;
+    --card: #1c2128;
+    --accent: #2e7d32;
     --text: #ffffff;
-    --text-dim: #b0b0b0;
-    --border: #333333;
+    --dim: #9aa0a6;
+    --blue: #5393ff;
 }
 
 body {
-    background-color: var(--bg);
+    background: var(--bg);
     color: var(--text);
-    font-family: 'Segoe UI', sans-serif;
+    font-family: -apple-system, sans-serif;
     margin: 0;
+    overflow: hidden;
 }
 
+.view { height: 100vh; display: flex; flex-direction: column; }
 .hidden { display: none !important; }
 
-/* View Switching */
-.view { padding: 20px; min-height: 100vh; }
+/* Search Home Styles */
+.brand { font-size: 24px; font-weight: bold; text-align: center; padding: 40px 0; color: var(--blue); }
+.search-container { padding: 0 20px; }
+.input-card { background: var(--card); border-radius: 12px; padding: 10px; position: relative; }
+.input-row { display: flex; align-items: center; padding: 10px; position: relative; }
+.dot-icon { color: var(--dim); margin-right: 15px; font-size: 20px; }
+input { background: transparent; border: none; color: white; font-size: 16px; width: 100%; outline: none; }
 
-/* Search Box */
-.search-box {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 12px;
-}
+.divider { height: 1px; background: #333; margin: 0 40px; position: relative; }
+.swap-btn { position: absolute; right: 20px; top: -15px; background: #222; border: 1px solid #444; color: #4ade80; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; }
 
-.input-wrapper label { font-size: 12px; color: var(--text-dim); margin-left: 5px; }
+.btn-main { background: var(--accent); color: white; border: none; width: 100%; padding: 16px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; }
 
-input {
-    width: 100%;
-    padding: 12px;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    color: white;
-    font-size: 16px;
-    margin-bottom: 15px;
-}
+/* Navigation & Results */
+.nav-bar { display: flex; align-items: center; padding: 15px; background: var(--card); border-bottom: 1px solid #333; }
+.back-btn { background: transparent; border: none; color: white; font-size: 24px; margin-right: 15px; }
+.scroll-area { flex: 1; overflow-y: auto; padding: 15px; }
 
-.btn-primary {
-    width: 100%;
-    padding: 15px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 16px;
-}
+.train-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-bottom: 1px solid #333; }
+.train-head { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.train-num { color: var(--blue); font-weight: bold; font-size: 14px; }
 
-/* Results Card */
-.train-card {
-    background: var(--card);
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 8px;
-    border-bottom: 1px solid var(--border);
-}
+/* Timeline UI */
+.timeline-item { display: flex; gap: 20px; padding-bottom: 20px; position: relative; }
+.t-line { position: absolute; left: 6px; top: 20px; bottom: 0; width: 2px; background: #333; }
+.t-dot { width: 14px; height: 14px; background: var(--blue); border-radius: 50%; z-index: 2; border: 3px solid var(--bg); }
+.stn-main { flex: 1; display: flex; justify-content: space-between; }
+.delay-text { color: #ff5252; font-size: 12px; }
 
-.train-row { display: flex; justify-content: space-between; font-weight: bold; }
-.train-no { color: #5393ff; font-size: 12px; }
-
-/* Live Timeline (Matching your 4th pic) */
-.timeline-item {
-    display: flex;
-    gap: 15px;
-    padding: 10px 0;
-    position: relative;
-}
-
-.timeline-dot {
-    width: 12px;
-    height: 12px;
-    background: #5393ff;
-    border-radius: 50%;
-    margin-top: 5px;
-    z-index: 2;
-}
-
-.timeline-line {
-    position: absolute;
-    left: 5px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #333;
-}
-
-.stn-info { flex: 1; }
-.arrival-time { color: #ff5252; font-size: 12px; } /* Red delay text */
+/* Dropdowns */
+.dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: #2d333b; z-index: 100; border-radius: 8px; max-height: 200px; overflow-y: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+.drop-item { padding: 12px; border-bottom: 1px solid #3e444d; cursor: pointer; }
