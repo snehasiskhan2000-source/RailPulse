@@ -13,7 +13,7 @@ app.use(express.static('public'));
 
 // CONFIGURATION
 // Use your Google Drive File ID here
-const SCHEDULE_URL = "https://docs.google.com/uc?export=download&id=YOUR_GOOGLE_DRIVE_ID_HERE";
+const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1_9g-7LTRWUMkp3219RGBQ1POpXwnPFws";
 const STATIONS_PATH = path.join(__dirname, 'data', 'stations.json');
 
 let schedules = [];
