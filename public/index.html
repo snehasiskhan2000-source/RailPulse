@@ -2,50 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Where is My Train</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailPulse - Live Tracking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    <div id="home-view">
-        <div class="header">
-            <i class="material-icons">menu</i>
-            <span>Where is My Train</span>
-        </div>
-        <div class="tabs">
-            <div class="tab active">EXPRESS</div>
-            <div class="tab">METRO</div>
-            <div class="tab">LOCAL</div>
-        </div>
-        <div class="search-section">
-            <div class="search-card">
-                <div class="input-row">
-                    <i class="material-icons">radio_button_unchecked</i>
-                    <input type="text" id="fromInput" placeholder="From Station" autocomplete="off">
-                </div>
-                <div class="divider">
-                    <div class="line"></div>
-                    <div class="swap-icon"><i class="material-icons">swap_vert</i></div>
-                </div>
-                <div class="input-row">
-                    <i class="material-icons">location_on</i>
-                    <input type="text" id="toInput" placeholder="To Station" autocomplete="off">
-                </div>
-                <button id="findBtn">Find trains</button>
+    <div class="app-container">
+        <header>
+            <h1><i class="fas fa-train"></i> RailPulse</h1>
+        </header>
+        
+        <div class="search-box">
+            <div class="input-wrapper">
+                <input type="text" id="fromStation" placeholder="From Station" autocomplete="off">
+                <div id="fromDropdown" class="dropdown hidden"></div>
             </div>
-            <div id="auto-list" class="hidden"></div>
+            
+            <div class="input-wrapper">
+                <input type="text" id="toStation" placeholder="To Station" autocomplete="off">
+                <div id="toDropdown" class="dropdown hidden"></div>
+            </div>
+            
+            <button id="findTrainsBtn" class="btn-primary">Find Trains</button>
         </div>
+
+        <div id="resultsList">
+            </div>
     </div>
 
-    <div id="results-view" class="hidden">
-        <div class="nav-header">
-            <i class="material-icons" onclick="location.reload()">arrow_back</i>
-            <span id="route-title">Search results</span>
-        </div>
-        <div id="train-list"></div>
-    </div>
-
+    <script src="/js/api.js"></script>
     <script src="/js/app.js"></script>
 </body>
 </html>
