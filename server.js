@@ -1,90 +1,88 @@
 const express = require('express');
-const compression = require('compression');
-const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-require('dotenv').config();
+const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
-app.use(compression());
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
-// Fixed MIME types for static assets
-app.use(express.static(path.join(__dirname, 'public'), {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
-        if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
-    }
-}));
+// --- CONFIGURATION ---
+// Replace 'YOUR_FILE_ID_HERE' with the ID from your Google Drive link
+const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1_9g-7LTRWUMkp3219RGBQ1POpXwnPFws";
+const STATIONS_PATH = path.join(__dirname, 'data', 'stations.json');
 
-// Data Variables
-let stations = [];
 let schedules = [];
+let stations = [];
 
-// REPLACE THIS with your Google Drive Direct Download Link
-// It must look like: https://docs.google.com/uc?export=download&id=YOUR_FILE_ID
-const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1O8sx5NvLP3G9Z2mj0fYwLnXJ3AvKopXP";
-
-// Load Data Function
-async function initData() {
-    try {
-        // Load local stations (smaller file)
-        stations = JSON.parse(fs.readFileSync('./data/stations.json', 'utf8'));
-        console.log(`✅ Loaded ${stations.length} stations locally.`);
-
-        // Load large schedules from GDrive
-        console.log("⏳ Fetching massive schedules.json from GDrive...");
-        const response = await axios.get(SCHEDULE_URL);
-        schedules = response.data;
-        console.log(`✅ Loaded ${schedules.length} schedules from Remote Source.`);
-    } catch (error) {
-        console.error("❌ Data Load Error:", error.message);
-        // Fallback to local file if GDrive fails
-        if (fs.existsSync('./data/schedules.json')) {
-            schedules = JSON.parse(fs.readFileSync('./data/schedules.json', 'utf8'));
-            console.log("⚠️ Using local fallback for schedules.");
-        }
+// 1. Load Local Stations (For Autocomplete)
+try {
+    if (fs.existsSync(STATIONS_PATH)) {
+        stations = JSON.parse(fs.readFileSync(STATIONS_PATH, 'utf8'));
+        console.log(`✅ Loaded ${stations.length} stations from local storage`);
+    } else {
+        console.error("❌ stations.json not found in data folder");
     }
+} catch (err) {
+    console.error("❌ Error parsing stations.json:", err.message);
 }
 
-// API: Autocomplete (matches your app.js logic)
+// 2. Load Remote Schedules (For Train Search)
+async function loadSchedules() {
+    try {
+        console.log("⏳ Fetching schedules from Google Drive...");
+        const response = await axios.get(SCHEDULE_URL);
+        schedules = response.data;
+        console.log(`✅ Loaded ${schedules.length} train schedules successfully`);
+    } catch (err) {
+        console.error("❌ Failed to load remote schedules:", err.message);
+    }
+}
+loadSchedules();
+
+// --- API ROUTES ---
+
+// Autocomplete Route
 app.get('/api/stations/search', (req, res) => {
     const query = req.query.q?.toLowerCase() || '';
-    const results = stations.filter(s => 
-        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
-    ).slice(0, 15);
-    res.json(results);
+    
+    if (query.length < 2) return res.json([]);
+
+    const matches = stations.filter(s => 
+        s.name.toLowerCase().includes(query) || 
+        s.code.toLowerCase().includes(query)
+    ).slice(0, 15); // Limit to 15 results for speed
+
+    res.json(matches);
 });
 
-// API: Search Trains (matches your trains logic)
+// Train Search Route
 app.get('/api/trains/find', (req, res) => {
-    const { from, to } = req.query;
-    if (!from || !to) return res.status(400).json({ error: "Missing parameters" });
+    const fromCode = req.query.from?.toUpperCase();
+    const toCode = req.query.to?.toUpperCase();
 
-    const fCode = from.toUpperCase();
-    const tCode = to.toUpperCase();
+    if (!fromCode || !toCode) {
+        return res.status(400).json({ error: "Source and Destination are required" });
+    }
 
     const results = schedules.filter(train => {
-        const stops = train.stops.map(s => s.station_code.toUpperCase());
-        const fIdx = stops.indexOf(fCode);
-        const tIdx = stops.indexOf(tCode);
-        return fIdx !== -1 && tIdx !== -1 && fIdx < tIdx;
+        const stopCodes = train.stops.map(s => s.station_code.toUpperCase());
+        const fromIdx = stopCodes.indexOf(fromCode);
+        const toIdx = stopCodes.indexOf(toCode);
+
+        // Logic: Both stations must exist, and 'From' must come before 'To'
+        return fromIdx !== -1 && toIdx !== -1 && fromIdx < toIdx;
     });
+
     res.json(results);
 });
 
-// Health check to see if data is loaded
-app.get('/api/status', (req, res) => {
-    res.json({ stations: stations.length, schedules: schedules.length });
-});
-
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-
-app.listen(PORT, '0.0.0.0', async () => {
-    console.log(`🚀 Server active on port ${PORT}`);
-    await initData();
+// Start Server
+app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
