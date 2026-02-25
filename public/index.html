@@ -3,35 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RailPulse - Live Tracking</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <title>RailPulse</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <header>
-            <h1><i class="fas fa-train"></i> RailPulse</h1>
-        </header>
+        <header><h1>🚆 RailPulse</h1></header>
         
         <div class="search-box">
             <div class="input-wrapper">
-                <input type="text" id="fromStation" placeholder="From Station" autocomplete="off">
+                <input type="text" id="fromInput" placeholder="Source Station" autocomplete="off">
                 <div id="fromDropdown" class="dropdown hidden"></div>
             </div>
             
             <div class="input-wrapper">
-                <input type="text" id="toStation" placeholder="To Station" autocomplete="off">
+                <input type="text" id="toInput" placeholder="Destination Station" autocomplete="off">
                 <div id="toDropdown" class="dropdown hidden"></div>
             </div>
             
-            <button id="findTrainsBtn" class="btn-primary">Find Trains</button>
+            <button class="btn-primary" onclick="findTrains()">Find Trains</button>
         </div>
 
-        <div id="resultsList">
-            </div>
+        <div id="resultsContainer"></div>
     </div>
-
-    <script src="/js/api.js"></script>
-    <script src="/js/app.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
