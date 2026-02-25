@@ -1,12 +1,6 @@
 [
-  { "name": "New Delhi", "code": "NDLS" },
-  { "name": "Mumbai Central", "code": "MMCT" },
   { "name": "Howrah Junction", "code": "HWH" },
-  { "name": "Chennai Central", "code": "MAS" },
-  { "name": "Bengaluru City", "code": "SBC" },
-  { "name": "Ahmedabad Junction", "code": "ADI" },
-  { "name": "Pune Junction", "code": "PUNE" },
-  { "name": "Secunderabad Junction", "code": "SC" },
-  { "name": "Lucknow Charbagh", "code": "LKO" },
-  { "name": "Jaipur Junction", "code": "JP" }
+  { "name": "Mumbai Central", "code": "MMCT" },
+  { "name": "New Delhi", "code": "NDLS" },
+  { "name": "Ahmedabad Junction", "code": "ADI" }
 ]
