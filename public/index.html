@@ -2,54 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RailPulse</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="view-search" class="view">
-        <header>
-            <div class="brand">🚆 RailPulse</div>
-        </header>
-        
-        <div class="search-container">
-            <div class="input-card">
-                <div class="input-row">
-                    <span class="dot-icon">○</span>
-                    <input type="text" id="fromInput" placeholder="From Station" autocomplete="off">
-                    <div id="fromDropdown" class="dropdown hidden"></div>
-                </div>
-                
-                <div class="divider">
-                    <button class="swap-btn" onclick="swapStations()">⇅</button>
-                </div>
-                
-                <div class="input-row">
-                    <span class="dot-icon">○</span>
-                    <input type="text" id="toInput" placeholder="To Station" autocomplete="off">
-                    <div id="toDropdown" class="dropdown hidden"></div>
-                </div>
+    <div id="screen-search" class="view">
+        <header><h1>🚆 RailPulse</h1></header>
+        <div class="search-card">
+            <div class="input-wrapper">
+                <input type="text" id="fromInput" placeholder="From Station" autocomplete="off">
+                <div id="fromDrop" class="dropdown hidden"></div>
             </div>
-            <button class="btn-main" onclick="findTrains()">Find trains</button>
+            <div class="swap-row"><button onclick="swap()">⇅</button></div>
+            <div class="input-wrapper">
+                <input type="text" id="toInput" placeholder="To Station" autocomplete="off">
+                <div id="toDrop" class="dropdown hidden"></div>
+            </div>
+            <button class="btn-primary" onclick="searchTrains()">Find Trains</button>
         </div>
     </div>
 
-    <div id="view-results" class="view hidden">
-        <div class="nav-bar">
-            <button class="back-btn" onclick="showView('view-search')">←</button>
-            <div class="nav-title" id="route-display">HWH → AMTA</div>
+    <div id="screen-results" class="view hidden">
+        <div class="header-nav">
+            <button onclick="showScreen('screen-search')">←</button>
+            <span id="route-text">Route</span>
         </div>
-        <div id="resultsList" class="scroll-area"></div>
+        <div id="results-list" class="content-area"></div>
     </div>
 
-    <div id="view-live" class="view hidden">
-        <div class="nav-bar">
-            <button class="back-btn" onclick="showView('view-results')">←</button>
-            <div class="nav-title" id="live-train-display">Live Status</div>
+    <div id="screen-live" class="view hidden">
+        <div class="header-nav">
+            <button onclick="showScreen('screen-results')">←</button>
+            <span id="train-name-text">Live Status</span>
         </div>
-        <div id="liveContent" class="scroll-area"></div>
+        <div id="live-timeline" class="content-area"></div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
