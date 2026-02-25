@@ -16,7 +16,7 @@ app.use(express.static('public'));
 const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1_9g-7LTRWUMkp3219RGBQ1POpXwnPFws";
 
 // Use the Key and Host from your RapidAPI screenshot
-const RAPID_API_KEY = "96e8e0..."; 
+const RAPID_API_KEY = process.env.RAPIDAPI_KEY; 
 const RAPID_API_HOST = "indian-railway-irctc.p.rapidapi.com";
 
 let schedules = [];
