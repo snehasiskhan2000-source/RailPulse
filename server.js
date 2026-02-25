@@ -7,40 +7,36 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// --- CONFIGURATION ---
-// Replace 'YOUR_FILE_ID_HERE' with the ID from your Google Drive link
-const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1_9g-7LTRWUMkp3219RGBQ1POpXwnPFws";
+// CONFIGURATION
+// Use your Google Drive File ID here
+const SCHEDULE_URL = "https://docs.google.com/uc?export=download&id=YOUR_GOOGLE_DRIVE_ID_HERE";
 const STATIONS_PATH = path.join(__dirname, 'data', 'stations.json');
 
 let schedules = [];
 let stations = [];
 
-// 1. Load Local Stations (For Autocomplete)
+// 1. Load Stations for Autocomplete (Local)
 try {
-    if (fs.existsSync(STATIONS_PATH)) {
-        stations = JSON.parse(fs.readFileSync(STATIONS_PATH, 'utf8'));
-        console.log(`✅ Loaded ${stations.length} stations from local storage`);
-    } else {
-        console.error("❌ stations.json not found in data folder");
-    }
+    const rawData = fs.readFileSync(STATIONS_PATH, 'utf8');
+    stations = JSON.parse(rawData);
+    console.log(`✅ Loaded ${stations.length} stations for autocomplete.`);
 } catch (err) {
-    console.error("❌ Error parsing stations.json:", err.message);
+    console.error("❌ Error loading stations.json:", err.message);
 }
 
-// 2. Load Remote Schedules (For Train Search)
+// 2. Load Schedules (Remote from GDrive)
 async function loadSchedules() {
     try {
-        console.log("⏳ Fetching schedules from Google Drive...");
+        console.log("⏳ Fetching 21MB schedule database...");
         const response = await axios.get(SCHEDULE_URL);
         schedules = response.data;
-        console.log(`✅ Loaded ${schedules.length} train schedules successfully`);
+        console.log(`✅ Success: ${schedules.length} train schedules loaded.`);
     } catch (err) {
-        console.error("❌ Failed to load remote schedules:", err.message);
+        console.error("❌ Failed to load schedules from GDrive:", err.message);
     }
 }
 loadSchedules();
@@ -50,39 +46,32 @@ loadSchedules();
 // Autocomplete Route
 app.get('/api/stations/search', (req, res) => {
     const query = req.query.q?.toLowerCase() || '';
-    
     if (query.length < 2) return res.json([]);
 
     const matches = stations.filter(s => 
         s.name.toLowerCase().includes(query) || 
         s.code.toLowerCase().includes(query)
-    ).slice(0, 15); // Limit to 15 results for speed
-
+    ).slice(0, 15);
     res.json(matches);
 });
 
 // Train Search Route
 app.get('/api/trains/find', (req, res) => {
-    const fromCode = req.query.from?.toUpperCase();
-    const toCode = req.query.to?.toUpperCase();
+    const from = req.query.from?.trim().toUpperCase();
+    const to = req.query.to?.trim().toUpperCase();
 
-    if (!fromCode || !toCode) {
-        return res.status(400).json({ error: "Source and Destination are required" });
-    }
+    if (!from || !to) return res.json([]);
 
+    // Filter trains that stop at both stations in the correct order
     const results = schedules.filter(train => {
         const stopCodes = train.stops.map(s => s.station_code.toUpperCase());
-        const fromIdx = stopCodes.indexOf(fromCode);
-        const toIdx = stopCodes.indexOf(toCode);
-
-        // Logic: Both stations must exist, and 'From' must come before 'To'
+        const fromIdx = stopCodes.indexOf(from);
+        const toIdx = stopCodes.indexOf(to);
+        
         return fromIdx !== -1 && toIdx !== -1 && fromIdx < toIdx;
     });
 
     res.json(results);
 });
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server active on port ${PORT}`));
