@@ -1,107 +1,70 @@
-// Global State
-let selectedFrom = null;
-let selectedTo = null;
+let fromCode = "", toCode = "";
 
-// View Navigation
-function showView(viewId) {
+function showScreen(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-    document.getElementById(viewId).classList.remove('hidden');
+    document.getElementById(id).classList.remove('hidden');
 }
 
-// Station Search Logic
-async function initSearch(inputId, dropdownId) {
-    const input = document.getElementById(inputId);
-    const dropdown = document.getElementById(dropdownId);
-
-    input.addEventListener('input', async () => {
-        if (input.value.length < 2) return dropdown.classList.add('hidden');
-        const res = await fetch(`/api/stations/search?q=${input.value}`);
+// Station Autocomplete
+async function setupInp(id, dropId) {
+    const inp = document.getElementById(id);
+    const drop = document.getElementById(dropId);
+    inp.oninput = async () => {
+        if (inp.value.length < 2) return;
+        const res = await fetch(`/api/stations/search?q=${inp.value}`);
         const data = await res.json();
-        
-        dropdown.innerHTML = data.map(s => `
-            <div class="drop-item" onclick="selectStation('${inputId}', '${s.name}', '${s.code}', '${dropdownId}')">
-                <b>${s.code}</b> - ${s.name}
-            </div>
-        `).join('');
-        dropdown.classList.remove('hidden');
-    });
+        drop.innerHTML = data.map(s => `<div class="drop-item" onclick="pick('${id}','${s.name}','${s.code}','${dropId}')"><b>${s.code}</b> ${s.name}</div>`).join('');
+        drop.classList.remove('hidden');
+    };
 }
 
-function selectStation(inputId, name, code, dropdownId) {
-    const input = document.getElementById(inputId);
-    input.value = `${name} (${code})`;
-    if (inputId === 'fromInput') selectedFrom = code;
-    else selectedTo = code;
-    document.getElementById(dropdownId).classList.add('hidden');
+function pick(id, name, code, dropId) {
+    document.getElementById(id).value = `${name} (${code})`;
+    if (id === 'fromInput') fromCode = code; else toCode = code;
+    document.getElementById(dropId).classList.add('hidden');
 }
 
-// Find Trains
-async function findTrains() {
-    if (!selectedFrom || !selectedTo) return alert("Select stations first!");
+// Search Function
+async function searchTrains() {
+    if (!fromCode || !toCode) return alert("Select stations");
+    showScreen('screen-results');
+    document.getElementById('route-text').innerText = `${fromCode} → ${toCode}`;
     
-    document.getElementById('route-display').innerText = `${selectedFrom} → ${selectedTo}`;
-    const list = document.getElementById('resultsList');
-    list.innerHTML = "<p>Finding trains...</p>";
-    showView('view-results');
-
-    const res = await fetch(`/api/trains/find?from=${selectedFrom}&to=${selectedTo}`);
+    const res = await fetch(`/api/trains/find?from=${fromCode}&to=${toCode}`);
     const trains = await res.json();
-
-    list.innerHTML = trains.map(t => `
-        <div class="train-item" onclick="getLiveStatus('${t.number}', '${t.name}')">
-            <div class="train-head">
-                <span class="train-num">${t.number}</span>
-                <span style="color:#4ade80; font-size:12px">Runs Daily</span>
+    
+    document.getElementById('results-list').innerHTML = trains.map(t => `
+        <div class="train-item" onclick="getLive('${t.number}','${t.name}')">
+            <div style="color:var(--blue); font-size:12px; font-weight:bold">${t.number}</div>
+            <div style="font-weight:bold; margin:5px 0">${t.name}</div>
+            <div style="display:flex; justify-content:space-between; font-size:14px; color:#aaa">
+                <span>${t.stops[0].departure}</span><span>${t.stops[t.stops.length-1].arrival}</span>
             </div>
-            <div style="font-weight:bold; margin-bottom:10px">${t.name}</div>
-            <div class="train-head" style="color:var(--dim); font-size:14px">
-                <span>${t.stops[0].departure}</span>
-                <span>${t.stops[t.stops.length-1].arrival}</span>
-            </div>
-        </div>
-    `).join('') || "<p>No trains found.</p>";
+        </div>`).join('') || "No trains found.";
 }
 
-// Live Status Logic
-async function getLiveStatus(num, name) {
-    document.getElementById('live-train-display').innerText = `${num} - ${name}`;
-    const content = document.getElementById('liveContent');
-    content.innerHTML = "<p>Fetching live timeline...</p>";
-    showView('view-live');
+// Live Status Timeline
+async function getLive(num, name) {
+    showScreen('screen-live');
+    document.getElementById('train-name-text').innerText = `${num} - ${name}`;
+    const list = document.getElementById('live-timeline');
+    list.innerHTML = "Fetching status...";
 
     try {
         const res = await fetch(`/api/train/live/${num}`);
         const data = await res.json();
-        
         if (data.body && data.body.stations) {
-            content.innerHTML = data.body.stations.map((stn, i) => `
+            list.innerHTML = data.body.stations.map((s, i) => `
                 <div class="timeline-item">
                     ${i < data.body.stations.length - 1 ? '<div class="t-line"></div>' : ''}
                     <div class="t-dot"></div>
-                    <div class="stn-main">
-                        <div>
-                            <div style="font-weight:bold">${stn.stationName}</div>
-                            <div style="font-size:12px; color:var(--dim)">Platform ${stn.platform || '--'}</div>
-                        </div>
-                        <div style="text-align:right">
-                            <div style="font-weight:bold">${stn.arrivalTime || stn.departureTime}</div>
-                            <div class="delay-text">${stn.actualArrival || ''}</div>
-                        </div>
+                    <div class="stn-info">
+                        <div><b>${s.stationName}</b><br><small style="color:#888">PF: ${s.platform || '--'}</small></div>
+                        <div style="text-align:right"><b>${s.arrivalTime || s.departureTime}</b></div>
                     </div>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
-    } catch (e) { content.innerHTML = "<p>Live status unavailable.</p>"; }
+    } catch (e) { list.innerHTML = "Error loading live data."; }
 }
 
-function swapStations() {
-    const from = document.getElementById('fromInput');
-    const to = document.getElementById('toInput');
-    const tempVal = from.value;
-    from.value = to.value;
-    to.value = tempVal;
-    [selectedFrom, selectedTo] = [selectedTo, selectedFrom];
-}
-
-initSearch('fromInput', 'fromDropdown');
-initSearch('toInput', 'toDropdown');
+setupInp('fromInput', 'fromDrop'); setupInp('toInput', 'toDrop');
