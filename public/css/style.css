@@ -1,52 +1,24 @@
-:root {
-    --bg: #0f1217;
-    --card: #1c2128;
-    --accent: #2e7d32;
-    --text: #ffffff;
-    --dim: #9aa0a6;
-    --blue: #5393ff;
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, sans-serif;
-    margin: 0;
-    overflow: hidden;
-}
-
-.view { height: 100vh; display: flex; flex-direction: column; }
+:root { --bg: #0f1217; --card: #1c2128; --acc: #2e7d32; --blue: #5393ff; --text: #fff; }
+body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; }
+.view { height: 100vh; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; }
 .hidden { display: none !important; }
 
-/* Search Home Styles */
-.brand { font-size: 24px; font-weight: bold; text-align: center; padding: 40px 0; color: var(--blue); }
-.search-container { padding: 0 20px; }
-.input-card { background: var(--card); border-radius: 12px; padding: 10px; position: relative; }
-.input-row { display: flex; align-items: center; padding: 10px; position: relative; }
-.dot-icon { color: var(--dim); margin-right: 15px; font-size: 20px; }
-input { background: transparent; border: none; color: white; font-size: 16px; width: 100%; outline: none; }
+/* Search UI */
+.search-card { background: var(--card); padding: 20px; border-radius: 12px; margin-top: 20px; }
+input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #333; color: white; padding: 12px 0; font-size: 16px; margin-bottom: 10px; }
+.btn-primary { background: var(--acc); color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 10px; }
 
-.divider { height: 1px; background: #333; margin: 0 40px; position: relative; }
-.swap-btn { position: absolute; right: 20px; top: -15px; background: #222; border: 1px solid #444; color: #4ade80; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; }
+/* Navigation */
+.header-nav { display: flex; align-items: center; gap: 15px; padding-bottom: 15px; border-bottom: 1px solid #333; }
+.header-nav button { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
 
-.btn-main { background: var(--accent); color: white; border: none; width: 100%; padding: 16px; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; }
+/* Results & Timeline */
+.content-area { flex: 1; overflow-y: auto; padding-top: 15px; }
+.train-item { background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-bottom: 1px solid #333; }
+.timeline-item { display: flex; gap: 15px; position: relative; padding-bottom: 20px; }
+.t-line { position: absolute; left: 5px; top: 18px; bottom: 0; width: 2px; background: #333; }
+.t-dot { width: 12px; height: 12px; background: var(--blue); border-radius: 50%; z-index: 2; margin-top: 4px; }
+.stn-info { flex: 1; display: flex; justify-content: space-between; }
 
-/* Navigation & Results */
-.nav-bar { display: flex; align-items: center; padding: 15px; background: var(--card); border-bottom: 1px solid #333; }
-.back-btn { background: transparent; border: none; color: white; font-size: 24px; margin-right: 15px; }
-.scroll-area { flex: 1; overflow-y: auto; padding: 15px; }
-
-.train-item { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-bottom: 1px solid #333; }
-.train-head { display: flex; justify-content: space-between; margin-bottom: 5px; }
-.train-num { color: var(--blue); font-weight: bold; font-size: 14px; }
-
-/* Timeline UI */
-.timeline-item { display: flex; gap: 20px; padding-bottom: 20px; position: relative; }
-.t-line { position: absolute; left: 6px; top: 20px; bottom: 0; width: 2px; background: #333; }
-.t-dot { width: 14px; height: 14px; background: var(--blue); border-radius: 50%; z-index: 2; border: 3px solid var(--bg); }
-.stn-main { flex: 1; display: flex; justify-content: space-between; }
-.delay-text { color: #ff5252; font-size: 12px; }
-
-/* Dropdowns */
-.dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: #2d333b; z-index: 100; border-radius: 8px; max-height: 200px; overflow-y: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+.dropdown { background: #2d333b; position: absolute; width: 100%; z-index: 100; border-radius: 8px; max-height: 200px; overflow-y: auto; }
 .drop-item { padding: 12px; border-bottom: 1px solid #3e444d; cursor: pointer; }
