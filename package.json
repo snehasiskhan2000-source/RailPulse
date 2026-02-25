@@ -1,17 +1,13 @@
 {
-  "name": "where-is-my-train-clone",
+  "name": "railpulse",
   "version": "1.0.0",
-  "description": "High-end Train Tracker Clone",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "install-data": "mkdir -p data && curl -L -o ./data/schedules.json 'https://drive.google.com/uc?export=download&id=1O8sx5NvLP3G9Z2mj0fYwLnXJ3AvKopXP'",
-    "build": "npm install && npm run install-data"
+    "start": "node server.js"
   },
   "dependencies": {
-    "axios": "^1.6.2",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3"
   }
 }
