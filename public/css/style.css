@@ -1,34 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
 :root {
-    --bg: #0f172a; --card: #1e293b; --accent: #38bdf8;
-    --text: #f8fafc; --text-dim: #94a3b8; --border: #334155;
+    --bg: #121212;
+    --card: #1e1e1e;
+    --accent: #2e7d32; /* Green from your pic */
+    --text: #ffffff;
+    --text-dim: #b0b0b0;
+    --border: #333333;
 }
 
 body {
-    background-color: var(--bg); color: var(--text);
-    font-family: 'Inter', sans-serif; margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
 }
 
-.app-container { max-width: 500px; margin: 0 auto; padding: 20px; }
+.hidden { display: none !important; }
 
-/* Search UI */
-.search-box { background: var(--card); padding: 24px; border-radius: 20px; border: 1px solid var(--border); }
-input { width: 100%; padding: 14px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 12px; margin-bottom: 10px; }
+/* View Switching */
+.view { padding: 20px; min-height: 100vh; }
 
-/* Train Cards */
+/* Search Box */
+.search-box {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.input-wrapper label { font-size: 12px; color: var(--text-dim); margin-left: 5px; }
+
+input {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: white;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Results Card */
 .train-card {
-    background: var(--card); margin-top: 15px; padding: 20px;
-    border-radius: 16px; border-left: 4px solid var(--accent);
-    cursor: pointer; transition: 0.2s;
+    background: var(--card);
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    border-bottom: 1px solid var(--border);
 }
-.train-card:active { transform: scale(0.98); background: #243147; }
 
-/* Live Panel */
-.live-panel {
-    margin-top: 15px; padding: 16px; background: #0f172a;
-    border-radius: 12px; border: 1px solid var(--accent);
+.train-row { display: flex; justify-content: space-between; font-weight: bold; }
+.train-no { color: #5393ff; font-size: 12px; }
+
+/* Live Timeline (Matching your 4th pic) */
+.timeline-item {
+    display: flex;
+    gap: 15px;
+    padding: 10px 0;
+    position: relative;
 }
-.tap-hint { text-align: center; font-size: 12px; color: var(--accent); margin-top: 10px; opacity: 0.7; }
-.loading-text { text-align: center; color: var(--accent); padding: 10px; }
-.hidden { display: none; }
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    background: #5393ff;
+    border-radius: 50%;
+    margin-top: 5px;
+    z-index: 2;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 5px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #333;
+}
+
+.stn-info { flex: 1; }
+.arrival-time { color: #ff5252; font-size: 12px; } /* Red delay text */
