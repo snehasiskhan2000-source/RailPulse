@@ -1,95 +1,49 @@
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
 const axios = require('axios');
-const cors = require('cors');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(express.static('public'));
 
-// --- CONFIGURATION ---
-// 1. Paste your Google Drive File ID here
-const SCHEDULE_URL = "https://drive.google.com/uc?export=download&id=1_9g-7LTRWUMkp3219RGBQ1POpXwnPFws";
-
-// 2. Paste your RapidAPI Key here (from your screenshot)
-const RAPID_API_KEY = process.env.RAPIDAPI_KEY; 
-const RAPID_API_HOST = "indian-railway-irctc.p.rapidapi.com";
+const RAPID_API_KEY = process.env.RAPIDAPI_KEY; // YOUR FULL RAPIDAPI KEY
+const API_HOST = "indian-railway-irctc.p.rapidapi.com";
 
 let schedules = [];
-let stations = [];
+const stations = JSON.parse(fs.readFileSync('./data/stations.json', 'utf8'));
 
-// Load Local Stations
-try {
-    const stationsPath = path.join(__dirname, 'data', 'stations.json');
-    stations = JSON.parse(fs.readFileSync(stationsPath, 'utf8'));
-    console.log("✅ Stations loaded locally");
-} catch (e) {
-    console.error("❌ Error loading stations.json");
-}
-
-// Load Schedules from Google Drive
+// Fetch your GDrive Schedule file here
 async function loadSchedules() {
     try {
-        const res = await axios.get(SCHEDULE_URL);
+        const res = await axios.get("https://drive.google.com/uc?export=download&id=1_9g-7LTRWUMkp3219RGBQ1POpXwnPFws");
         schedules = res.data;
-        console.log("✅ Schedules loaded from GDrive");
-    } catch (e) {
-        console.error("❌ GDrive Load Failed");
-    }
+    } catch (e) { console.log("Schedule Load Error"); }
 }
 loadSchedules();
 
-// --- API ROUTES ---
-
-// Autocomplete
 app.get('/api/stations/search', (req, res) => {
-    const query = req.query.q?.toLowerCase() || '';
-    const matches = stations.filter(s => 
-        s.name.toLowerCase().includes(query) || s.code.toLowerCase().includes(query)
-    ).slice(0, 10);
-    res.json(matches);
+    const q = req.query.q.toLowerCase();
+    res.json(stations.filter(s => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)).slice(0, 10));
 });
 
-// Search
 app.get('/api/trains/find', (req, res) => {
-    const from = req.query.from?.toUpperCase();
-    const to = req.query.to?.toUpperCase();
-    const results = schedules.filter(train => {
-        const codes = train.stops.map(s => s.station_code.toUpperCase());
+    const { from, to } = req.query;
+    const matches = schedules.filter(t => {
+        const codes = t.stops.map(s => s.station_code);
         const fIdx = codes.indexOf(from);
         const tIdx = codes.indexOf(to);
         return fIdx !== -1 && tIdx !== -1 && fIdx < tIdx;
     });
-    res.json(results);
+    res.json(matches);
 });
 
-// Live Status
-app.get('/api/train/live/:trainNo', async (req, res) => {
-    const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    const options = {
-        method: 'GET',
-        url: 'https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status',
-        params: {
-            departure_date: today,
-            isH5: 'true',
-            client: 'web',
-            deviceIdentifier: 'Mozilla/5.0',
-            train_number: req.params.trainNo
-        },
-        headers: {
-            'x-rapidapi-key': RAPID_API_KEY,
-            'x-rapidapi-host': RAPID_API_HOST
-        }
-    };
+app.get('/api/train/live/:num', async (req, res) => {
     try {
-        const response = await axios.request(options);
+        const response = await axios.get('https://indian-railway-irctc.p.rapidapi.com/api/trains/v1/train/status', {
+            params: { train_number: req.params.num, departure_date: '20260225', client: 'web' },
+            headers: { 'x-rapidapi-key': API_KEY, 'x-rapidapi-host': API_HOST }
+        });
         res.json(response.data);
-    } catch (error) {
-        res.status(500).json({ error: "API Error" });
-    }
+    } catch (e) { res.status(500).send(); }
 });
 
-app.listen(PORT, () => console.log(`🚀 Server active on port ${PORT}`));
+app.listen(3000, () => console.log("Server running"));
