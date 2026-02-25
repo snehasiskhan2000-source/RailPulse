@@ -1,93 +1,69 @@
-async function setupAutocomplete(inputId, dropdownId) {
-    const input = document.getElementById(inputId);
-    const dropdown = document.getElementById(dropdownId);
-
-    input.addEventListener('input', async (e) => {
-        const query = e.target.value;
-        if (query.length < 2) return dropdown.classList.add('hidden');
-
-        const res = await fetch(`/api/stations/search?q=${query}`);
-        const data = await res.json();
-
-        dropdown.innerHTML = data.map(s => `
-            <div class="drop-item" onclick="selectStation('${inputId}', '${s.name}', '${s.code}', '${dropdownId}')">
-                <span class="stn-name">${s.name}</span>
-                <span class="stn-code">${s.code}</span>
-            </div>
-        `).join('');
-        dropdown.classList.remove('hidden');
-    });
+// Navigation Helper
+function showView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    document.getElementById(viewId).classList.remove('hidden');
 }
 
-function selectStation(inputId, name, code, dropdownId) {
-    const input = document.getElementById(inputId);
-    input.value = `${name} (${code})`;
-    input.dataset.code = code; // Save code for searching
-    document.getElementById(dropdownId).classList.add('hidden');
-}
-
+// Find Trains logic
 async function findTrains() {
-    const fromCode = document.getElementById('fromInput').dataset.code;
-    const toCode = document.getElementById('toInput').dataset.code;
-    const container = document.getElementById('resultsContainer');
-
-    if (!fromCode || !toCode) {
-        alert("Please select stations from the dropdown list.");
-        return;
-    }
-
-    container.innerHTML = '<p class="loading-text">Searching trains...</p>';
-
-    const res = await fetch(`/api/trains/find?from=${fromCode}&to=${toCode}`);
+    const from = document.getElementById('fromInput').dataset.code;
+    const to = document.getElementById('toInput').dataset.code;
+    
+    const res = await fetch(`/api/trains/find?from=${from}&to=${to}`);
     const trains = await res.json();
-
-    if (trains.length === 0) {
-        container.innerHTML = '<p class="loading-text">No trains found for this route.</p>';
-        return;
-    }
-
-    container.innerHTML = trains.map(train => `
-        <div class="train-card" onclick="getLiveStatus('${train.number}')">
-            <div class="route-line">
-                <div>
-                    <span class="stn-code" style="color:var(--accent)">${train.number}</span>
-                    <h3 style="margin:5px 0">${train.name}</h3>
-                </div>
+    
+    document.getElementById('route-title').innerText = `${from} → ${to}`;
+    const list = document.getElementById('resultsList');
+    
+    list.innerHTML = trains.map(t => `
+        <div class="train-card" onclick="openLiveTracking('${t.number}', '${t.name}')">
+            <div class="train-no">${t.number}</div>
+            <div class="train-row">
+                <span>${t.name}</span>
+                <span>Runs Daily</span>
             </div>
-            <div class="tap-hint">📍 Tap to Track Live Location</div>
-            <div id="live-${train.number}" class="live-panel hidden"></div>
+            <div class="train-row" style="margin-top:10px; font-size:14px; color:var(--text-dim)">
+                <span>${t.stops[0].departure}</span>
+                <span>${t.stops[t.stops.length-1].arrival}</span>
+            </div>
         </div>
     `).join('');
+    
+    showView('view-results');
 }
 
-async function getLiveStatus(trainNo) {
-    const panel = document.getElementById(`live-${trainNo}`);
-    if (!panel.classList.contains('hidden')) {
-        return panel.classList.add('hidden');
-    }
-
-    panel.innerHTML = "🛰️ Contacting Satellite...";
-    panel.classList.remove('hidden');
+// Live Tracking logic (Timeline generation)
+async function openLiveTracking(trainNo, trainName) {
+    document.getElementById('live-train-title').innerText = `${trainNo} - ${trainName}`;
+    const container = document.getElementById('liveTrackingContent');
+    container.innerHTML = "<p>Loading live timeline...</p>";
+    showView('view-live');
 
     try {
         const res = await fetch(`/api/train/live/${trainNo}`);
-        const json = await res.json();
+        const data = await res.json();
         
-        if (json.body) {
-            panel.innerHTML = `
-                <div class="live-info">
-                    <p><strong>Current:</strong> ${json.body.current_station || 'Unknown'}</p>
-                    <p><strong>Status:</strong> ${json.body.train_status_message || 'In Transit'}</p>
+        if (data.body && data.body.stations) {
+            container.innerHTML = data.body.stations.map(stn => `
+                <div class="timeline-item">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-dot"></div>
+                    <div class="stn-info">
+                        <div class="train-row">
+                            <span>${stn.stationName}</span>
+                            <span class="arrival-time">${stn.actualArrival || stn.arrivalTime}</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-dim)">
+                            Platform ${stn.platform || 'N/A'} • ${stn.distance} km
+                        </div>
+                    </div>
                 </div>
-            `;
-        } else {
-            panel.innerHTML = "Live status currently unavailable.";
+            `).join('');
         }
     } catch (e) {
-        panel.innerHTML = "Error fetching live tracking data.";
+        container.innerHTML = "<p>Unable to fetch live data.</p>";
     }
 }
 
-// Initialize
-setupAutocomplete('fromInput', 'fromDropdown');
-setupAutocomplete('toInput', 'toDropdown');
+// Initialize Station Dropdowns (Reuse your existing logic here)
+// ... setupAutocomplete('fromInput', 'fromDropdown'); ...
