@@ -1,19 +1,18 @@
 [
   {
-    "number": "12951",
-    "name": "Mumbai Rajdhani Express",
+    "number": "12810",
+    "name": "Howrah Mumbai Mail",
     "stops": [
-      { "station_code": "MMCT", "station_name": "Mumbai Central", "arrival": "Source", "departure": "17:00" },
-      { "station_code": "ADI", "station_name": "Ahmedabad Junction", "arrival": "21:30", "departure": "21:40" },
-      { "station_code": "NDLS", "station_name": "New Delhi", "arrival": "08:32", "departure": "Destination" }
+      { "station_code": "HWH", "station_name": "Howrah Junction", "arrival": "Source", "departure": "20:00" },
+      { "station_code": "MMCT", "station_name": "Mumbai Central", "arrival": "05:25", "departure": "Destination" }
     ]
   },
   {
-    "number": "12002",
-    "name": "Bhopal Shatabdi",
+    "number": "12951",
+    "name": "Mumbai Rajdhani",
     "stops": [
-      { "station_code": "NDLS", "station_name": "New Delhi", "arrival": "Source", "departure": "06:00" },
-      { "station_code": "ADI", "station_name": "Ahmedabad Junction", "arrival": "14:20", "departure": "Destination" }
+      { "station_code": "MMCT", "station_name": "Mumbai Central", "arrival": "Source", "departure": "17:00" },
+      { "station_code": "NDLS", "station_name": "New Delhi", "arrival": "08:32", "departure": "Destination" }
     ]
   }
 ]
